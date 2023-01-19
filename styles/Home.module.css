@@ -18,6 +18,18 @@
   font-family: var(--font-mono);
 }
 
+/* tryout */
+.exchange{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 50%; /* adjust as needed */
+    height: 50%; /* adjust as needed */
+    margin: auto;
+    position: absolute;
+    top: 0; left: 0; bottom: 0; right: 0;
+}
+
 .description a {
   display: flex;
   justify-content: center;

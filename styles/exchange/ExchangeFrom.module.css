@@ -1,0 +1,10 @@
+.main{
+    margin: 5px;
+}
+.label{
+    width: 350px;
+    height: 56px;
+    font-size: x-large;
+    padding: 16px;
+    border-radius: 10px;
+}
