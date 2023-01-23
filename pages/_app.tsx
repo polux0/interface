@@ -9,9 +9,9 @@ import { alchemyProvider } from 'wagmi/providers/alchemy';
 import { publicProvider } from 'wagmi/providers/public';
 
 const { chains, provider } = configureChains(
-  [polygon, goerli, polygonMumbai],
+  [polygon, polygonMumbai, goerli],
   [
-    alchemyProvider({ apiKey: process.env.ALCHEMY_ID || ""}),
+    alchemyProvider({ apiKey: process.env.NEXT_PUBLIC_ALCHEMY_ID || ""}),
     publicProvider()
   ]
 );
@@ -29,7 +29,7 @@ const wagmiClient = createClient({
 export default function App({ Component, pageProps }: AppProps) {
   return (
     <WagmiConfig client={wagmiClient}>
-    <RainbowKitProvider chains={chains} initialChain={goerli}>
+    <RainbowKitProvider chains={chains} initialChain={goerli} showRecentTransactions={true}>
       <Component {...pageProps} />
     </RainbowKitProvider>
   </WagmiConfig>

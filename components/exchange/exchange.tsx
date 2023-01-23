@@ -11,7 +11,9 @@ export default function Exchange({...props}){
         <div className={exchangeStyles.main}>
             <ExchangeFrom></ExchangeFrom>
             <ExchangeTo></ExchangeTo>
-            {isWalletConnected(walletConnected)}
+            <ConnectButton></ConnectButton>
+            <ExchangeButton></ExchangeButton> 
+            {/* {isWalletConnected(walletConnected)} */}
         </div>
     )
 }

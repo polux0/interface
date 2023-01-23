@@ -1,7 +1,6 @@
 import Head from 'next/head'
 import Image from 'next/image'
 import { Inter } from '@next/font/google'
-import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useAccount } from 'wagmi';
 import Exchange from '@/components/exchange/exchange';
 // Jesse
@@ -24,7 +23,7 @@ export default function Home() {
         {/* <div className={styles.description}>description</div> */}
       </Head>
       <div>
-      <Exchange walletConnected = {false}></Exchange>
+      <Exchange walletConnected = {true}></Exchange>
       </div>
     </>
   )
