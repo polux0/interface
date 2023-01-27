@@ -2,12 +2,11 @@ import { agencyUsdcAmmRouterAbi } from '@/contracts/abis';
 import exchangeTo from '@/styles/exchange/ExchangeTo.module.css'
 import { ethers } from 'ethers';
 import { useState } from 'react';
-import { useAccount, useContractRead } from 'wagmi';
+import { useContractRead } from 'wagmi';
 
 export default function ExchangeTo(){
     
     const [expectedAmout, setExpectedAmount] = useState("1");
-    const account = useAccount();
     // decide how will we receive this here
     const amount = 10;
     const amountWeiValue = ethers.utils.formatUnits(amount, "wei") || "0";

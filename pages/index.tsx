@@ -22,7 +22,7 @@ export default function Home() {
         {/* <main className={styles.main}> */}
         {/* <div className={styles.description}>description</div> */}
       </Head>
-      <div>
+      <div className="wrapper">
       <Exchange walletConnected = {true}></Exchange>
       </div>
     </>

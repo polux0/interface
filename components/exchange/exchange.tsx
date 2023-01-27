@@ -9,25 +9,20 @@ import { ethers } from 'ethers';
 import { useAccount, useContractRead } from 'wagmi'
 import { agencyStableAbi, agencyUsdcAmmRouterAbi } from '../../contracts/abis'
 import useDebounce from '../../hooks/Debounce';
+import { BigNumber } from 'ethers';
 
 
 export default function Exchange({...props}){
     // technical debt
-    // 1. use debounce
     // 2. create config for contracts ( hooks )
     const account = useAccount();
     
-    const [ amount, setAmount ] = useState("");
-    const [ amountWei, setAmountWei ] = useState("");
-    const [ currentAllowance, setCurrentAllowance ] = useState("");
-    const [ expectedAmount, setExpectedAmount ] = useState("");
-    const [ isEnteringAmount, setIsEnteringAmount ] = useState<boolean>(false);
+    const [ amount, setAmount ] = useState("0");
+    const [ amountWei, setAmountWei ] = useState("0");
+    const [ currentAllowance, setCurrentAllowance ] = useState("0");
+    const [ expectedAmount, setExpectedAmount ] = useState("0");
 
-    // Debounce search term so that it only gives us latest value ...
-    // ... if searchTerm has not been updated within last 500ms
-    // As a result the API call should only fire once user stops typing
-    // const debouncedInputAmount = useDebounce(amountHandler, 500);
-    // useDebounce(amountHandler, 500);
+    const debouncedInputAmount = useDebounce(amount, 800);
 
     // fetch allowance
     const { refetch: fetchAllowance } = useContractRead({
@@ -45,25 +40,47 @@ export default function Exchange({...props}){
         args:[amountWei],
         enabled: false,
     })
+    useEffect(
+        () => {
+          if (debouncedInputAmount) {
+            fetchAllowance?.().then(currentAllowancePromise =>{
+                const result = currentAllowancePromise?.data as string
+                setCurrentAllowance(result);
+            })
+            fetchQuote?.().then(quote => {
+                const result = quote?.data as Array<any>;
+                let amountOutAMM, amountOutProtocol, amountOut;
+                try {
+                    amountOutAMM = BigNumber.from(result?.[2])
+                    amountOutProtocol = BigNumber.from(result[3])
+                    amountOut = amountOutAMM.add(amountOutProtocol);
+
+                } catch (error) {
+                    amountOutAMM = 0
+                    amountOutProtocol = 0
+                    amountOut = 0
+                }
+                setExpectedAmount(amountOut.toString())
+            });
+          } else {
+            setCurrentAllowance("0");
+            setExpectedAmount("0")
+          }
+        },
+        [debouncedInputAmount, fetchAllowance, fetchQuote] // Only call effect if debounced search term changes
+      );
     async function amountHandler(event: any){
         const amount: any = event.target.value;
-        let amountWei = "";
+        let amountWei;
         try {
             amountWei = ethers.utils.formatUnits(amount, "wei");    
         } catch (error) {
             amountWei = "0";
         }
         setAmountWei(amountWei)
+        // technical debt
+        // should not be here as it violates single responsibillity principle
         setAmount(amountWei);
-        const currentAllowance: any = (await fetchAllowance?.()).data
-        setCurrentAllowance(currentAllowance);
-        // await getQuote(amountWei);
-    }
-    async function getQuote(amount: string){
-        const quoteResponse: any = await fetchQuote?.()
-        const amountOutAMM = quoteResponse.data[2];
-        const amountOutProtocol = quoteResponse.data[3];
-        setExpectedAmount(amountOutAMM+amountOutProtocol)
     }
     // was before
     // return (
@@ -81,16 +98,17 @@ export default function Exchange({...props}){
         <div className={exchangeStyles.main}>
             {/* <ExchangeFrom> */}
             <div className ={exchangeFrom.main}>
-            <input className = {exchangeFrom.label} type="number" name="exchangefrom" value={amount} onChange={ e => amountHandler(e)} />
+            <input className = {exchangeFrom.label} type="number" name="exchangefrom" min="0" value={amount} onChange={ e => amountHandler(e)} />
             </div>
             {/* </ExchangeFrom> */}
             {/* <ExchangeTo> */}
             <div className={exchangeTo.main}>
-            <input className = {exchangeTo.label} defaultValue={expectedAmount} type="number" name="exchangeto" />
+            <input className = {exchangeTo.label} defaultValue={expectedAmount} type="number" min="0" name="exchangeto" />
             </div>
             {/* </ExchangeTo> */}   
             <ConnectButton></ConnectButton>
-            <ExchangeButton></ExchangeButton> 
+            {/* here we pass wei value */}
+            <ExchangeButton amountWei = {amountWei} currentAllowance={currentAllowance}></ExchangeButton> 
             {/* {isWalletConnected(walletConnected)} */}
         </div>
     )
