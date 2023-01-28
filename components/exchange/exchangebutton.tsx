@@ -39,7 +39,7 @@ export default function ExchangeButton({...props}){
         address: '0x97f35E291f65711CC8f48F9f92748FE17C5AF1Da',
         abi: agencyStableAbi,
         functionName: 'increaseAllowance',
-        args: ["0x3a6315B9BFeCF72e39f8327DA6cCBf93473608B8", amountWei.toString()],
+        args: ["0x3a6315B9BFeCF72e39f8327DA6cCBf93473608B8", amountWeiNormalized],
     })
 
     const { config: swapExactFraxForTempleConfig } = usePrepareContractWrite({
