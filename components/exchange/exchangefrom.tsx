@@ -16,7 +16,7 @@ export default function ExchangeFrom({...props}){
         address: '0x97f35E291f65711CC8f48F9f92748FE17C5AF1Da',
         abi: agencyStableAbi,
         functionName: 'allowance',
-        args:[account.address, "0x3a6315B9BFeCF72e39f8327DA6cCBf93473608B8"],
+        args:[account.address, "0x4d0E552aAc0370b68A23B5b00bd96f8e3FF556C5"],
         enabled: false,
     })
     return(
