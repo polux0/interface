@@ -7,7 +7,8 @@ import ExchangeButton from './exchangebutton'
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useEffect, useState } from "react";
 import { ethers } from 'ethers';
-import { useAccount, useContractRead, useContractWrite, usePrepareContractWrite, useProvider } from 'wagmi'
+import { useAccount, useContractRead, useContractWrite, usePrepareContractWrite, useProvider, useWaitForTransaction } from 'wagmi'
+import { useAddRecentTransaction } from '@rainbow-me/rainbowkit';
 import { agencyStableAbi, agencyUsdcAmmRouterAbi } from '../../contracts/abis'
 import useDebounce from '../../hooks/Debounce';
 import { BigNumber } from 'ethers';
@@ -25,6 +26,7 @@ export default function Exchange({...props}){
     const [ currentAllowance, setCurrentAllowance ] = useState("0");
     const [ expectedAmount, setExpectedAmount ] = useState("0");
     const [ deadline, setDeadline ] = useState(0);
+    // const [ currentAllowanceIncreased, setCurrentAllowanceIncreased] = useState(false);
 
     const debouncedInputAmount = useDebounce(amount, 800);
     const debouncedDeadline = useDebounce(deadline, 800);
@@ -84,17 +86,34 @@ export default function Exchange({...props}){
     }
     const increaseAllowanceOrSwap = function(){
         // technical debt
-        // question should we put `currentAllowanceNormalized` && `amountNormalized` as part of state
+        // question: should we put `currentAllowanceNormalized` && `amountNormalized` as part of state
         const currentAllowanceNormalized = BigNumber.from(currentAllowance).toString();
         const amountNormalized = ethers.utils.parseEther(amount).toString()
-        const isCurrentAllowanceBiggerOrEqualToAmount = (BigNumber.from(currentAllowanceNormalized)).gte(BigNumber.from(amountNormalized));
-        return isCurrentAllowanceBiggerOrEqualToAmount ? "Swap" : "Increase allowance";
+        const isCurrentAllowanceGreaterOrEqualToAmount = (BigNumber.from(currentAllowanceNormalized)).gte(BigNumber.from(amountNormalized));
+        return isCurrentAllowanceGreaterOrEqualToAmount ? "Swap" : "Increase allowance";
     }
-    const increaseAllowance = function (){
-        increaseAllowanceWrite?.();
-        
-        // after we set allowance, increase current allowance to new value! and button will rerender itself
+
+    const increaseAllowance = () => {
+        // setCurrentAllowanceIncreased(true);
+         increaseAllowanceWrite?.();
+         
     }
+    useWaitForTransaction({
+        confirmations: 1,
+        hash: increaseAllowanceData?.hash,
+        onSettled(data, error) {
+            console.log('Settled', { data, error })
+            fetchAllowance?.().then(increaseAllowancePromise =>{
+                const updatedAllowance = increaseAllowancePromise?.data as string
+                setCurrentAllowance(updatedAllowance);
+                // useAddRecentTransaction({
+                // hash: data?.transactionHash.toString() || "",
+                // description:"increase allowance"
+                // })
+            })
+          },
+      });
+
     const increaseAllowanceOrSwapWrite = function(){
 
         const result = increaseAllowanceOrSwap()
@@ -105,7 +124,6 @@ export default function Exchange({...props}){
           if (debouncedInputAmount) {
             fetchAllowance?.().then(currentAllowancePromise =>{
                 const result = currentAllowancePromise?.data as string
-                console.log("amount: ", amountWei)
                 setCurrentAllowance(result);
             })
             fetchQuote?.().then(quote => {
