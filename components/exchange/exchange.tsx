@@ -9,7 +9,7 @@ import { useEffect, useState } from "react";
 import { ethers } from 'ethers';
 import { useAccount, useContractRead, useContractWrite, usePrepareContractWrite, useProvider, useWaitForTransaction } from 'wagmi'
 import { useAddRecentTransaction } from '@rainbow-me/rainbowkit';
-import { agencyStableAbi, agencyUsdcAmmRouterAbi } from '../../contracts/abis'
+import { agencyStableAbi, agencyUsdcAmmRouterAbi, agencyTreasurySeedAbi } from '../../contracts/abis'
 import useDebounce from '../../hooks/Debounce';
 import { BigNumber } from 'ethers';
 
@@ -48,40 +48,42 @@ export default function Exchange({...props}){
         amountMinOutWeiValue = BigNumber.from("0");
 
     }
-    
-
     // technical debt - move all of those functions to separate module
-    // 🎥 agency stable deployed at 0x531734989A71f78054450BbfEB3C70BA3BffEf2c
-    // 🎥 agency usdc amm router deployed at 0x4d0E552aAc0370b68A23B5b00bd96f8e3FF556C5
-    // fetch allowance
+    // 🤖 deployer address 0xD3d5B16a5B25AafffC9A9459Af4de2a38bc8d659
+    // 🎥 agency deployed at 0x40B2911A8f9ff3B5a806e79DA7F9445ff3970362
+    // 🎥 agency stable deployed at 0xD7295ab92c0BAe514dC33aB9Dd142f7d10AC413b
+    // 🎥 agency treasury deployed at 0x5c41C8AF1C022ECadf1C309F8CCA489A93077a8b
+    // 🎥 agency treasury seed deployed at 0xb08a51B76A5c00827336903598Dce825912bDeCc
+
+    // fetch alowance ( treasurySeedContract.address <> account.address )( done )
     const { refetch: fetchAllowance } = useContractRead({
-        address: '0x531734989A71f78054450BbfEB3C70BA3BffEf2c',
+        address: '0xD7295ab92c0BAe514dC33aB9Dd142f7d10AC413b',
         abi: agencyStableAbi,
         functionName: 'allowance',
-        args:[account.address, "0x4d0E552aAc0370b68A23B5b00bd96f8e3FF556C5"],
+        args:[account.address, "0xb08a51B76A5c00827336903598Dce825912bDeCc"],
         enabled: false,
     })
-    // fetch quote
+    // fetch quote ( done )
     const { refetch: fetchQuote } = useContractRead({
-        address: '0x4d0E552aAc0370b68A23B5b00bd96f8e3FF556C5',
-        abi: agencyUsdcAmmRouterAbi,
-        functionName: 'swapExactFraxForTempleQuote',
+        address: '0xb08a51B76A5c00827336903598Dce825912bDeCc',
+        abi: agencyTreasurySeedAbi,
+        functionName: 'getSeedQuote',
         args:[amountWei],
         enabled: false,
     })
-    // increase allowance
+    // increase allowance ( account.address <> treasurySeedContract.address ) ( done )
     const { config: increaseAllowanceConfig } = usePrepareContractWrite({
-        address: '0x531734989A71f78054450BbfEB3C70BA3BffEf2c',
+        address: '0xD7295ab92c0BAe514dC33aB9Dd142f7d10AC413b',
         abi: agencyStableAbi,
         functionName: 'increaseAllowance',
-        args: ["0x4d0E552aAc0370b68A23B5b00bd96f8e3FF556C5", amountWeiNormalized],
+        args: ["0x5c41C8AF1C022ECadf1C309F8CCA489A93077a8b", amountWeiNormalized],
     })
-    // swapExactFraxForTemple
+    // treasurySeed ( done )
     const { config: swapExactFraxForTempleConfig } = usePrepareContractWrite({
-        address: '0x4d0E552aAc0370b68A23B5b00bd96f8e3FF556C5',
-        abi: agencyUsdcAmmRouterAbi,
-        functionName: 'swapExactFraxForTemple',
-        args: [amountWeiNormalized, amountMinOutWeiValue, account.address, debouncedDeadline],
+        address: '0xb08a51B76A5c00827336903598Dce825912bDeCc',
+        abi: agencyTreasurySeedAbi,
+        functionName: 'seed',
+        args: [amountWeiNormalized],
         // not sure if necessary
         overrides: {gasLimit: BigNumber.from(600000)}
     })
@@ -134,13 +136,11 @@ export default function Exchange({...props}){
                 setCurrentAllowance(result);
             })
             fetchQuote?.().then(quote => {
-                const result = quote?.data as Array<any>;
+                const result = quote?.data as any;
                 let amountOutAMM, amountOutProtocol, amountOut;
+                const test = ethers.utils.formatUnits( result, "wei" ) || 0
                 try {
-                    amountOutAMM = BigNumber.from(result?.[2])
-                    amountOutProtocol = BigNumber.from(result[3])
-                    amountOut = amountOutAMM.add(amountOutProtocol);
-
+                    amountOut = ethers.utils.formatUnits( result, "wei" );
                 } catch (error) {
                     amountOutAMM = 0
                     amountOutProtocol = 0
@@ -171,16 +171,6 @@ export default function Exchange({...props}){
         // should not be here as it violates single responsibillity principle
         setAmount(amountWei);
     }
-    // was before
-    // return (
-    //     <div className={exchangeStyles.main}>
-    //         <ExchangeFrom></ExchangeFrom>
-    //         <ExchangeTo></ExchangeTo>
-    //         <ConnectButton></ConnectButton>
-    //         <ExchangeButton></ExchangeButton> 
-    //         {/* {isWalletConnected(walletConnected)} */}
-    //     </div>
-    // )
 
     // experimenting
     return (
