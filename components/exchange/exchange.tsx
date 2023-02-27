@@ -35,9 +35,20 @@ export default function Exchange({...props}){
     // user should set it's `deadline` as well as `slippage`
     const defaultDeadline = 7200000;
 
-    const currentAllowanceNormalized = ethers.utils.parseUnits(currentAllowance.toString(), "ether").toString();
-    const amountWeiNormalized = ethers.utils.parseUnits(amountWei.toString(), "ether").toString();
-    const amountMinOutWeiValue = BigNumber.from(amountWei).sub(BigNumber.from(amountWei).div(10));
+    let currentAllowanceNormalized;
+    let amountWeiNormalized;
+    let amountMinOutWeiValue;
+    try {
+         currentAllowanceNormalized = ethers.utils.parseUnits(currentAllowance.toString(), "ether").toString();
+         amountWeiNormalized = ethers.utils.parseUnits(amountWei.toString(), "ether").toString();
+         amountMinOutWeiValue = BigNumber.from(amountWei).sub(BigNumber.from(amountWei).div(10));
+    } catch (error) {
+        currentAllowanceNormalized = "0";
+        amountWeiNormalized = "0";
+        amountMinOutWeiValue = BigNumber.from("0");
+
+    }
+    
 
     // technical debt - move all of those functions to separate module
     // 🎥 agency stable deployed at 0x531734989A71f78054450BbfEB3C70BA3BffEf2c
@@ -87,16 +98,16 @@ export default function Exchange({...props}){
     const increaseAllowanceOrSwap = function(){
         // technical debt
         // question: should we put `currentAllowanceNormalized` && `amountNormalized` as part of state
-        const currentAllowanceNormalized = BigNumber.from(currentAllowance).toString();
+        let currentAllowanceNormalized;
+        try {
+            currentAllowanceNormalized = BigNumber.from(currentAllowance).toString();    
+        } catch (error) {
+            currentAllowanceNormalized = "0";
+        }
+        
         const amountNormalized = ethers.utils.parseEther(amount).toString()
         const isCurrentAllowanceGreaterOrEqualToAmount = (BigNumber.from(currentAllowanceNormalized)).gte(BigNumber.from(amountNormalized));
         return isCurrentAllowanceGreaterOrEqualToAmount ? "Swap" : "Increase allowance";
-    }
-
-    const increaseAllowance = () => {
-        // setCurrentAllowanceIncreased(true);
-         increaseAllowanceWrite?.();
-         
     }
     useWaitForTransaction({
         confirmations: 1,
@@ -106,10 +117,6 @@ export default function Exchange({...props}){
             fetchAllowance?.().then(increaseAllowancePromise =>{
                 const updatedAllowance = increaseAllowancePromise?.data as string
                 setCurrentAllowance(updatedAllowance);
-                // useAddRecentTransaction({
-                // hash: data?.transactionHash.toString() || "",
-                // description:"increase allowance"
-                // })
             })
           },
       });
@@ -117,7 +124,7 @@ export default function Exchange({...props}){
     const increaseAllowanceOrSwapWrite = function(){
 
         const result = increaseAllowanceOrSwap()
-        result === "Swap" ? swapExactFraxForTempleWrite?.() : increaseAllowance();
+        result === "Swap" ? swapExactFraxForTempleWrite?.() : increaseAllowanceWrite?.();
     }
     useEffect(
         () => {

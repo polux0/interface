@@ -2,6 +2,7 @@
  * See all ids below
  * https://ethereum.stackexchange.com/questions/17051/how-to-select-a-network-id-or-is-there-a-list-of-network-ids
  */
+export const LOCAL_ID = 1337;
 export const MAINNET_ID = 1;
 export const RINKEBY_ID = 4;
 export const GOERLI_ID= 5;
@@ -43,5 +44,11 @@ export default {
     tokens: {
       DAI: "0xc3dbf84Abb494ce5199D5d4D815b10EC29529ff8",
     },
+  [LOCAL_ID]:{
+    agency: "0x5fbdb2315678afecb367f032d93f642f64180aa3",
+    agencyStable: "0xe7f1725e7734ce288f8367e1bb143e90bb3f0512",
+    agencyTreasury: "0x9fe46736679d2d9a65f0992f2272de9f3c7fa6e0",
+    agencyTreasurySeed: "0xcf7ed3acca5a467e9e704c703e8d87f634fb0fc9"
+  }
   },
 };
