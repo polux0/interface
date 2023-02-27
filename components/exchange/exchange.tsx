@@ -356,10 +356,6 @@ export default function Exchange({...props}){
                       <div className="float-left"><h2>12.0798 $AGENCY</h2></div>
                       <div className="float-left"><h2 className="text-black">Network fee</h2></div>
                       <div className="float-left"><h2>~$1.72</h2></div>
-                      {/* <div className="flex justify-left items-left w-6/6 h-1/9 p-2">
-                        <div className="w-4/4">Network fee</div>
-                        <div className="w-1/4">~$1.72</div>
-                      </div> */}
                     </div>
                   </div>
               </div>
