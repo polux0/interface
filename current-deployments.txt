@@ -1,0 +1,5 @@
+🤖 deployer address 0xD3d5B16a5B25AafffC9A9459Af4de2a38bc8d659
+🎥 agency deployed at 0x40B2911A8f9ff3B5a806e79DA7F9445ff3970362
+🎥 agency stable deployed at 0xD7295ab92c0BAe514dC33aB9Dd142f7d10AC413b
+🎥 agency treasury deployed at 0x5c41C8AF1C022ECadf1C309F8CCA489A93077a8b
+🎥 agency treasury seed deployed at 0xb08a51B76A5c00827336903598Dce825912bDeCc
