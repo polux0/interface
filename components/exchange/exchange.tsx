@@ -23,7 +23,6 @@ import userWalletMobileScreenSvg from "../../public/user-wallet-small-screen-svg
 import {useIsMounted} from "../../helpers/useIsMounted"
 import React from "react";
 import { createPopper } from "@popperjs/core";
-import { CustomConnectButton } from '../CustomConnectButton';
 
 import {
     useConnectModal,
@@ -42,9 +41,6 @@ export default function Exchange({...props}){
     const { address, isConnecting, isDisconnected } = useAccount()
     
     const addressFormated = addressFormater(address || "");
-    // desired result "0  x  2  2  2 ... 2  3  2"
-    // what we actually get 0xD3d5B16a5B25AafffC9A9459Af4de2a38bc8d659
-
 
     // technical debt: 
     // 1. adapt styles / css for components
@@ -296,7 +292,7 @@ export default function Exchange({...props}){
             {/* Swap */}
             <div className="flex flex-col justify-center items-center space-y-2 h-2/3"> 
               <div className="flex justify-center items-center w-5/6 h-2/6 rounded-2xl" style={{backgroundColor}}>
-                  <input className="w-2/3 h-2/3 text-4xl text-white p-4 focus:outline-0" style={{backgroundColor}} type="number" min="0" value={amount} onChange={ e => amountHandler(e)}></input>
+                  <input className="w-2/3 h-2/3 text-4xl text-white p-4 focus:outline-0" style={{backgroundColor}} type="number" min="0" value={amount} onChange={e => amountHandler(e)}></input>
                   <button className="w-1/6 h-1/2"><Image className="float-right"src={usdcSvg}></Image></button>
                   <button className="w-1/6 h-1/2" onClick={() => {
                     currenciesDropdownPopoverShow
@@ -326,7 +322,7 @@ export default function Exchange({...props}){
                   {/* Settings dropdown */}
               </div>
               <div className="flex justify-center items-center w-5/6 h-2/6 rounded-2xl" style={{backgroundColor}}>
-                  <input className="w-2/3 h-2/3 text-4xl text-white p-4 focus:outline-0" style={{backgroundColor}} defaultValue={expectedAmount} type="number" min="0"></input>
+                  <input className="w-2/3 h-2/3 text-4xl text-white p-4 focus:outline-0" style={{backgroundColor}} defaultValue={expectedAmount} type="number" min="0" onChange={e => {}}></input>
                   <button className="w-1/6 h-1/2"><Image className="float-right" src={usdcSvg}></Image></button>
                   <button className="w-1/6 h-1/9" onClick={() => {
                     additionalTradeInfoDropdownPopoverShow
@@ -364,11 +360,11 @@ export default function Exchange({...props}){
                         <h3 className="float-right text-lg text-black hover:cursor-pointer" onClick={() => {  if(additionalTradeInfoDropdownPopoverShow){closeAdditionalTradeInfoDropdownPopover()}}}>X</h3>
                       </div>
                       <div className="float-left"><h2 className="text-black">Expected output</h2></div>
-                      <div className="float-left"><h2>{expectedAmount}</h2></div>
+                      <div className="float-left"><h2>{expectedAmount} $AGENCY</h2></div>
                       <div className="float-left"><h2 className="text-black">Price impact</h2></div>
                       <div className="float-left"><h2>0%</h2></div>
                       <div className="float-left"><h2 className="text-black">Minimum received after slippage ( %0.5 )</h2></div>
-                      <div className="float-left"><h2>12.0798 $AGENCY</h2></div>
+                      <div className="float-left"><h2>{expectedAmount} $AGENCY</h2></div>
                       <div className="float-left"><h2 className="text-black">Network fee</h2></div>
                       <div className="float-left"><h2>~$1.72</h2></div>
                     </div>
