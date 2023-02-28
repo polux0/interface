@@ -379,9 +379,13 @@ export default function Exchange({...props}){
                   </div>
               </div>
               <div className="w-5/6 h-2/6 rounded-2xl border-4 border-black border-solid">
-                <button className="w-full text-black bg-white h-full rounded-2xl" 
+                {/* <button className="w-full text-black bg-white h-full rounded-2xl" 
                         onClick={() => {isDisconnected? openConnectModal : enoughStables(data?.value.toString(), amountWeiNormalized) ? increaseAllowanceOrSwapWrite : test()}}>
                         { isDisconnected? "Connect wallet" : enoughStables(data?.value.toString(), amountWeiNormalized) ? increaseAllowanceOrSwap(): "Insufficient USDC amount"}
+                </button> */}
+                <button className="w-full text-black bg-white h-full rounded-2xl" 
+                        onClick={() => {isDisconnected? openConnectModal : increaseAllowanceOrSwapWrite}}>
+                        { isDisconnected? "Connect wallet"  : increaseAllowanceOrSwap()}
                 </button>
               </div>
             </div>
