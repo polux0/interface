@@ -21,6 +21,7 @@ import statsSvg from "../../public/stats-icon-svg.svg";
 import userWalletMobileScreenSvg from "../../public/user-wallet-small-screen-svg.svg";
 import React from "react";
 import { createPopper } from "@popperjs/core";
+import { CustomConnectButton } from '../CustomConnectButton';
 
 
 export default function Exchange({...props}){
@@ -220,9 +221,8 @@ export default function Exchange({...props}){
             fetchQuote?.().then(quote => {
                 const result = quote?.data as any;
                 let amountOutAMM, amountOutProtocol, amountOut;
-                const test = ethers.utils.formatUnits( result, "wei" ) || 0
                 try {
-                    amountOut = ethers.utils.formatUnits( result, "wei" );
+                    amountOut = ethers.utils.formatUnits( result, "wei" ) || 0;
                 } catch (error) {
                     amountOutAMM = 0
                     amountOutProtocol = 0
@@ -359,10 +359,10 @@ export default function Exchange({...props}){
                     </div>
                   </div>
               </div>
-              {/* <button className="w-1/6 h-1/9" data-dropdown-toggle="dropdown"><Image src={informationIndicator} style={imageStyle}></Image></button> */}
-              <div className="w-5/6 h-2/6 rounded-2xl border-4 border-black border-solid">
+              {/* <div className="w-5/6 h-2/6 rounded-2xl border-4 border-black border-solid">
                 <button className="w-full text-black bg-white h-full rounded-2xl" onClick={increaseAllowanceOrSwapWrite}>{increaseAllowanceOrSwap()}</button>
-            </div>
+              </div> */}
+              <CustomConnectButton></CustomConnectButton>
             </div>
           </div>
           {/* Stats */}
