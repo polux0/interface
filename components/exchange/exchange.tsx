@@ -277,10 +277,10 @@ export default function Exchange({...props}){
         <div className="h-screen bg-black p-6" style={{backgroundColor}}>
         {/* Header */}
           <div className="grid 2xl:grid-cols-7 xl:grid-cols-7 lg:grid-cols-7 md:grid-cols-7 sm:grid-cols-5">
-            <div className="2xl:col-start-3 col-span-2 2xl:place-self-center xl:col-start-3 col-span-2 xl:place-self-center lg:col-start-3 col-span-3 lg:place-self-center md:col-start-3 col-span-2 md:place-self-center sm:col-start-2 col-span-3 sm:place-self-end xsm: col-start-2 place-self-center"><Image className="2xl:ml-0 xl:ml-0 md:ml-0 sm:ml-12" src={agencyLogoSvg}></Image></div>
+            <div className="2xl:col-start-3 col-span-2 2xl:place-self-center xl:col-start-3 col-span-2 xl:place-self-center lg:col-start-3 col-span-3 lg:place-self-center md:col-start-3 col-span-2 md:place-self-center sm:col-start-2 col-span-3 sm:place-self-end xsm: col-start-2 place-self-center"><Image alt="deployment test" className="2xl:ml-0 xl:ml-0 md:ml-0 sm:ml-12" src={agencyLogoSvg}></Image></div>
             <div className="col-start-7 text-white place-self-center hover:cursor-pointer xsm:hidden sm:block md:block lg:block xl:block 2xl:block"><h1 className="mb-3.5" onClick={openAccountModal}>
             {mounted ? addressFormated : ""}</h1></div>
-            <div className="col-start-6 text-white place-self-center sm:place-self-center sm:mb-3.5 xsm:mb-3.5 hover:cursor-pointer xsm:block sm:hidden md:hidden lg:hidden xl:hidden 2xl:hidden"><Image className="mb-1" src={userWalletMobileScreenSvg}></Image></div> 
+            <div className="col-start-6 text-white place-self-center sm:place-self-center sm:mb-3.5 xsm:mb-3.5 hover:cursor-pointer xsm:block sm:hidden md:hidden lg:hidden xl:hidden 2xl:hidden"><Image alt="deployment test" className="mb-1" src={userWalletMobileScreenSvg}></Image></div> 
           </div>
         <div className="flex flex-row w-full min-h-3/4 lg:mt-36 justify-center items-center md:mt-36 sm:mt-36 xsm:mt-1">
         {/* //Roadmap */}
@@ -331,7 +331,7 @@ export default function Exchange({...props}){
               </div>
               <div className="flex justify-center items-center w-5/6 h-2/6 rounded-2xl" style={{backgroundColor}}>
                   <input className="w-2/3 h-2/3 text-4xl text-white p-4 focus:outline-0" style={{backgroundColor}} defaultValue={expectedAmount} type="number" min="0" onChange={e => {}}></input>
-                  <button className="w-1/6 h-1/2"><Image className="float-right" src={usdcSvg}></Image></button>
+                  <button className="w-1/6 h-1/2"><Image alt="deployment test" className="float-right" src={usdcSvg}></Image></button>
                   <button className="w-1/6 h-1/9" onClick={() => {
                     additionalTradeInfoDropdownPopoverShow
                       ? closeAdditionalTradeInfoDropdownPopover()
