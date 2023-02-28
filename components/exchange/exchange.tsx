@@ -212,6 +212,9 @@ export default function Exchange({...props}){
         const isCurrentAllowanceGreaterOrEqualToAmount = (BigNumber.from(currentAllowanceNormalized)).gte(BigNumber.from(amountNormalized));
         return isCurrentAllowanceGreaterOrEqualToAmount ? "Swap" : "Increase allowance";
     }
+    function test(){
+        console.log("swap will fail")
+    }
     useWaitForTransaction({
         confirmations: 1,
         hash: increaseAllowanceData?.hash,
@@ -275,14 +278,14 @@ export default function Exchange({...props}){
         {/* Header */}
           <div className="grid 2xl:grid-cols-7 xl:grid-cols-7 lg:grid-cols-7 md:grid-cols-7 sm:grid-cols-5">
             <div className="2xl:col-start-3 col-span-2 2xl:place-self-center xl:col-start-3 col-span-2 xl:place-self-center lg:col-start-3 col-span-3 lg:place-self-center md:col-start-3 col-span-2 md:place-self-center sm:col-start-2 col-span-3 sm:place-self-end xsm: col-start-2 place-self-center"><Image className="2xl:ml-0 xl:ml-0 md:ml-0 sm:ml-12" src={agencyLogoSvg}></Image></div>
-            <div className="col-start-7 text-white place-self-center hover:cursor-pointer xsm:hidden sm:block md:block lg:block xl:block 2xl:block"><h1 className="mb-3.5" onClick={openAccountModal}type="button">
+            <div className="col-start-7 text-white place-self-center hover:cursor-pointer xsm:hidden sm:block md:block lg:block xl:block 2xl:block"><h1 className="mb-3.5" onClick={openAccountModal}>
             {mounted ? addressFormated : ""}</h1></div>
             <div className="col-start-6 text-white place-self-center sm:place-self-center sm:mb-3.5 xsm:mb-3.5 hover:cursor-pointer xsm:block sm:hidden md:hidden lg:hidden xl:hidden 2xl:hidden"><Image className="mb-1" src={userWalletMobileScreenSvg}></Image></div> 
           </div>
         <div className="flex flex-row w-full min-h-3/4 lg:mt-36 justify-center items-center md:mt-36 sm:mt-36 xsm:mt-1">
         {/* //Roadmap */}
         <div className="float-left w-4/12 xsm:hidden 2xl:block xl:block lg:block md:block sm:block">
-          <button><Image src={roadmapSvg} style={imageStyle}></Image></button>
+          <button><Image src={roadmapSvg} alt="deployment test" style={imageStyle}></Image></button>
         </div>
           <div className="h-max 2xl:w-4/12 xl:w-5/12 lg:w-6/12 bg-white rounded-3xl p-6" style={exchangeContainerHeight}>
             <div className = "w-full h-1/6">
@@ -292,19 +295,19 @@ export default function Exchange({...props}){
                     settingsDropdownPopoverShow
                       ? closeSettingsDropdownPopover()
                       : openSettingsDropdownPopover();
-                  }}><Image src={settingsSvg}></Image></button>
+                  }}><Image alt="deployment test" src={settingsSvg}></Image></button>
             </div>
             {/* Swap */}
             <div className="flex flex-col justify-center items-center space-y-2 h-2/3"> 
               <div className="flex justify-center items-center w-5/6 h-2/6 rounded-2xl" style={{backgroundColor}}>
                   <input className="w-2/3 h-2/3 text-4xl text-white p-4 focus:outline-0" style={{backgroundColor}} type="number" min="0" value={amount} onChange={e => amountHandler(e)}></input>
-                  <button className="w-1/6 h-1/2"><Image className="float-right"src={usdcSvg}></Image></button>
+                  <button className="w-1/6 h-1/2"><Image alt="deployment test"className="float-right"src={usdcSvg}></Image></button>
                   <button className="w-1/6 h-1/2" onClick={() => {
                     currenciesDropdownPopoverShow
                       ? closeCurrenciesDropdownPopover()
                       : openCurrenciesDropdownPopover();
                   }}
-                  ><Image src={dropDownSvg} style={imageStyle}></Image></button>
+                  ><Image alt="deployment test" src={dropDownSvg} style={imageStyle}></Image></button>
                   {/* Settings dropdown */}
                   <div id="dropdown" ref={settingsPopoverDropdownRef} className={(settingsDropdownPopoverShow ? "block " : "hidden ") + (color === "white" ? "bg-white " : backgroundColor1 + " ") +
                     "absolute text-base z-10 float-right w-1/6 h-2/6 py-2 list-none text-center rounded-2xl border-4 border-black border-solid shadow-lg p-5 mt-40 ml-36"
@@ -333,7 +336,7 @@ export default function Exchange({...props}){
                     additionalTradeInfoDropdownPopoverShow
                       ? closeAdditionalTradeInfoDropdownPopover()
                       : openAdditionalTradeInfoDropdownPopover();
-                  }}><Image src={informationIndicatorWhite} style={imageStyle}></Image></button>
+                  }}><Image alt="deployment test" src={informationIndicatorWhite} style={imageStyle}></Image></button>
                   {/* Currencies dropdown */}
                   <div id="dropdown" ref={currenciesPopoverDropdownRef} className={(currenciesDropdownPopoverShow ? "block " : "hidden ") + (color === "white" ? "bg-white " : backgroundColor1 + " ") +
                     "absolute text-base z-10 float-right w-1/6 py-2 list-none text-center rounded-2xl border-4 border-black border-solid shadow-lg mt-40 ml-36"
@@ -341,15 +344,15 @@ export default function Exchange({...props}){
                     <h3 className='text-black'>Choose token</h3>
                     <div className="flex flex-col py-2 text-sm dark:text-gray-400 p-5">
                       <div onClick={()=>{console.log("FRAX"); closeCurrenciesDropdownPopover()}} className="flex justify-center items-center w-6/6 h-1/9 p-2 rounded-2xl border-2 border-gray hover:text-black hover:border-black border-solid mb-2.5 bg-white">
-                        <button className="w-1/4"><Image src={usdcDarkSvg}></Image></button>
+                        <button className="w-1/4"><Image alt="deployment test" src={usdcDarkSvg}></Image></button>
                         <div className="w-3/4 float-left mr-9"> $FRAX </div>
                       </div>
                       <div onClick={()=>{console.log("USDC"); closeCurrenciesDropdownPopover()}} className="flex justify-center items-center w-6/6 h-1/9 p-2 rounded-2xl border-2 border-gray hover:text-black hover:border-black border-solid mb-2.5 bg-white">
-                        <button className="w-1/4"><Image src={usdcDarkSvg}></Image></button>
+                        <button className="w-1/4"><Image alt="deployment test" src={usdcDarkSvg}></Image></button>
                         <div className="w-3/4 float-left mr-9"> $USDC </div>
                       </div>
                       <div onClick={()=>{console.log("USDT"); closeCurrenciesDropdownPopover()}} className="flex justify-center items-center w-6/6 h-1/9 p-2 rounded-2xl border-2 border-gray hover:text-black hover:border-black border-solid mb-2.5 bg-white">
-                        <button className="w-1/4"><Image src={usdcDarkSvg}></Image></button>
+                        <button className="w-1/4"><Image alt="deployment test" src={usdcDarkSvg}></Image></button>
                         <div className="w-3/4 float-left mr-9"> $USDT </div>
                       </div>
                     </div>
@@ -376,22 +379,22 @@ export default function Exchange({...props}){
                   </div>
               </div>
               <div className="w-5/6 h-2/6 rounded-2xl border-4 border-black border-solid">
-                <button className="w-full text-black bg-white h-full rounded-2xl" onClick={isDisconnected? openConnectModal : increaseAllowanceOrSwapWrite}>{ isDisconnected? "Connect wallet" : enoughStables(data?.value.toString(), amountWeiNormalized) ? increaseAllowanceOrSwap(): "Insufficient USDC amount"}</button>
+                <button className="w-full text-black bg-white h-full rounded-2xl" onClick={isDisconnected? openConnectModal : enoughStables(data?.value.toString(), amountWeiNormalized) ? increaseAllowanceOrSwapWrite : test()}>{ isDisconnected? "Connect wallet" : enoughStables(data?.value.toString(), amountWeiNormalized) ? increaseAllowanceOrSwap(): "Insufficient USDC amount"}</button>
               </div>
             </div>
           </div>
           {/* Stats */}
           <div className="w-4/12 float-right hover:cursor-pointer xsm:hidden sm:block md:block lg:block xl:block 2xl:block">
-            <Image className="float-right" src={statsSvg}></Image>
+            <Image alt="deployment test" className="float-right" src={statsSvg}></Image>
           </div>
         </div>
         {/* Roadmap & Stats as a footer ( mobile ) */}
         <div className="w-full h-1/7 mt-3 2xl:hidden xl:hidden lg:hidden md:hidden sm:hidden">
           <div className="w-4/12 float-right hover:cursor-pointer">
-              <Image className="" src={statsSvg} style={imageStyle}></Image>
+              <Image alt="deployment test" className="" src={statsSvg} style={imageStyle}></Image>
           </div>
           <div className="w-4/12 float-left hover:cursor-pointer">
-              <Image className="" src={roadmapSvg}></Image>
+              <Image alt="deployment test" className="" src={roadmapSvg}></Image>
           </div>
         {/* Roadmap & Stats as a footer ( mobile ) */}
         </div>
