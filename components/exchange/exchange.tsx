@@ -9,6 +9,7 @@ import useDebounce from '../../hooks/Debounce';
 import { BigNumber } from 'ethers';
 import Image from 'next/image';
 
+
 // technical debt - create separate module
 import settingsSvg from "../../public/noun-settings-pixel-art-2758641.svg";
 import usdcSvg from "../../public/usdc-logo-svg.svg"
@@ -19,12 +20,31 @@ import agencyLogoSvg from "../../public/agency-logo.svg";
 import roadmapSvg from "../../public/roadmapicon-svg.svg";
 import statsSvg from "../../public/stats-icon-svg.svg";
 import userWalletMobileScreenSvg from "../../public/user-wallet-small-screen-svg.svg";
+import {useIsMounted} from "../../helpers/useIsMounted"
 import React from "react";
 import { createPopper } from "@popperjs/core";
 import { CustomConnectButton } from '../CustomConnectButton';
 
+import {
+    useConnectModal,
+    useAccountModal,
+    useChainModal,
+  } from '@rainbow-me/rainbowkit';
+import { addressFormater } from '@/helpers/addressFormater';
 
 export default function Exchange({...props}){
+
+    const { openConnectModal } = useConnectModal();
+    const { openAccountModal } = useAccountModal();
+    const { openChainModal } = useChainModal();
+    const mounted = useIsMounted();
+
+    const { address, isConnecting, isDisconnected } = useAccount()
+    
+    const addressFormated = addressFormater(address || "");
+    // desired result "0  x  2  2  2 ... 2  3  2"
+    // what we actually get 0xD3d5B16a5B25AafffC9A9459Af4de2a38bc8d659
+
 
     // technical debt: 
     // 1. adapt styles / css for components
@@ -108,15 +128,12 @@ export default function Exchange({...props}){
     const [ amountWei, setAmountWei ] = useState("0");
     const [ currentAllowance, setCurrentAllowance ] = useState("0");
     const [ expectedAmount, setExpectedAmount ] = useState("0");
-    const [ deadline, setDeadline ] = useState(0);
     // const [ currentAllowanceIncreased, setCurrentAllowanceIncreased] = useState(false);
 
     const debouncedInputAmount = useDebounce(amount, 800);
-    const debouncedDeadline = useDebounce(deadline, 800);
 
     // technical debt 
     // user should set it's `deadline` as well as `slippage`
-    const defaultDeadline = 7200000;
 
     let currentAllowanceNormalized;
     let amountWeiNormalized;
@@ -230,15 +247,12 @@ export default function Exchange({...props}){
                 }
                 setExpectedAmount(amountOut.toString())
             });
-            const currentBlockNumber = provider.getBlockNumber().then(currentBlockNumber => { return currentBlockNumber });
-            provider.getBlock(currentBlockNumber).then(currentBlock => setDeadline(currentBlock.timestamp + defaultDeadline));
           } else {
             setCurrentAllowance("0");
             setExpectedAmount("0")
-            setDeadline(0);
           }
         },
-        [debouncedInputAmount, fetchAllowance, fetchQuote, setDeadline, provider] // Only call effect if debounced search term changes
+        [debouncedInputAmount, fetchAllowance, fetchQuote, provider] // Only call effect if debounced search term changes
     );
     async function amountHandler(event: any){
         const amount: any = event.target.value;
@@ -260,7 +274,8 @@ export default function Exchange({...props}){
         {/* Header */}
           <div className="grid 2xl:grid-cols-7 xl:grid-cols-7 lg:grid-cols-7 md:grid-cols-7 sm:grid-cols-5">
             <div className="2xl:col-start-3 col-span-2 2xl:place-self-center xl:col-start-3 col-span-2 xl:place-self-center lg:col-start-3 col-span-3 lg:place-self-center md:col-start-3 col-span-2 md:place-self-center sm:col-start-2 col-span-3 sm:place-self-end xsm: col-start-2 place-self-center"><Image className="2xl:ml-0 xl:ml-0 md:ml-0 sm:ml-12" src={agencyLogoSvg}></Image></div>
-            <div className="col-start-7 text-white place-self-center hover:cursor-pointer xsm:hidden sm:block md:block lg:block xl:block 2xl:block"><h1 className="mb-3.5">0  x  2  2  2 ... 2  3  2</h1></div>
+            <div className="col-start-7 text-white place-self-center hover:cursor-pointer xsm:hidden sm:block md:block lg:block xl:block 2xl:block"><h1 className="mb-3.5" onClick={openAccountModal}type="button">
+            {mounted ? addressFormated : ""}</h1></div>
             <div className="col-start-6 text-white place-self-center sm:place-self-center sm:mb-3.5 xsm:mb-3.5 hover:cursor-pointer xsm:block sm:hidden md:hidden lg:hidden xl:hidden 2xl:hidden"><Image className="mb-1" src={userWalletMobileScreenSvg}></Image></div> 
           </div>
         <div className="flex flex-row w-full min-h-3/4 lg:mt-36 justify-center items-center md:mt-36 sm:mt-36 xsm:mt-1">
@@ -281,7 +296,7 @@ export default function Exchange({...props}){
             {/* Swap */}
             <div className="flex flex-col justify-center items-center space-y-2 h-2/3"> 
               <div className="flex justify-center items-center w-5/6 h-2/6 rounded-2xl" style={{backgroundColor}}>
-                  <input className="w-2/3 h-2/3 text-4xl text-white p-4 focus:outline-0" style={{backgroundColor}}></input>
+                  <input className="w-2/3 h-2/3 text-4xl text-white p-4 focus:outline-0" style={{backgroundColor}} type="number" min="0" value={amount} onChange={ e => amountHandler(e)}></input>
                   <button className="w-1/6 h-1/2"><Image className="float-right"src={usdcSvg}></Image></button>
                   <button className="w-1/6 h-1/2" onClick={() => {
                     currenciesDropdownPopoverShow
@@ -311,7 +326,7 @@ export default function Exchange({...props}){
                   {/* Settings dropdown */}
               </div>
               <div className="flex justify-center items-center w-5/6 h-2/6 rounded-2xl" style={{backgroundColor}}>
-                  <input className="w-2/3 h-2/3 text-4xl text-white p-4 focus:outline-0" style={{backgroundColor}}></input>
+                  <input className="w-2/3 h-2/3 text-4xl text-white p-4 focus:outline-0" style={{backgroundColor}} defaultValue={expectedAmount} type="number" min="0"></input>
                   <button className="w-1/6 h-1/2"><Image className="float-right" src={usdcSvg}></Image></button>
                   <button className="w-1/6 h-1/9" onClick={() => {
                     additionalTradeInfoDropdownPopoverShow
@@ -324,15 +339,15 @@ export default function Exchange({...props}){
                   }>
                     <h3 className='text-black'>Choose token</h3>
                     <div className="flex flex-col py-2 text-sm dark:text-gray-400 p-5">
-                      <div className="flex justify-center items-center w-6/6 h-1/9 p-2 rounded-2xl border-2 border-gray hover:text-black hover:border-black border-solid mb-2.5 bg-white">
+                      <div onClick={()=>{console.log("FRAX"); closeCurrenciesDropdownPopover()}} className="flex justify-center items-center w-6/6 h-1/9 p-2 rounded-2xl border-2 border-gray hover:text-black hover:border-black border-solid mb-2.5 bg-white">
                         <button className="w-1/4"><Image src={usdcDarkSvg}></Image></button>
                         <div className="w-3/4 float-left mr-9"> $FRAX </div>
                       </div>
-                      <div className="flex justify-center items-center w-6/6 h-1/9 p-2 rounded-2xl border-2 border-gray hover:text-black hover:border-black border-solid mb-2.5 bg-white">
+                      <div onClick={()=>{console.log("USDC"); closeCurrenciesDropdownPopover()}} className="flex justify-center items-center w-6/6 h-1/9 p-2 rounded-2xl border-2 border-gray hover:text-black hover:border-black border-solid mb-2.5 bg-white">
                         <button className="w-1/4"><Image src={usdcDarkSvg}></Image></button>
                         <div className="w-3/4 float-left mr-9"> $USDC </div>
                       </div>
-                      <div className="flex justify-center items-center w-6/6 h-1/9 p-2 rounded-2xl border-2 border-gray hover:text-black hover:border-black border-solid mb-2.5 bg-white">
+                      <div onClick={()=>{console.log("USDT"); closeCurrenciesDropdownPopover()}} className="flex justify-center items-center w-6/6 h-1/9 p-2 rounded-2xl border-2 border-gray hover:text-black hover:border-black border-solid mb-2.5 bg-white">
                         <button className="w-1/4"><Image src={usdcDarkSvg}></Image></button>
                         <div className="w-3/4 float-left mr-9"> $USDT </div>
                       </div>
@@ -349,7 +364,7 @@ export default function Exchange({...props}){
                         <h3 className="float-right text-lg text-black hover:cursor-pointer" onClick={() => {  if(additionalTradeInfoDropdownPopoverShow){closeAdditionalTradeInfoDropdownPopover()}}}>X</h3>
                       </div>
                       <div className="float-left"><h2 className="text-black">Expected output</h2></div>
-                      <div className="float-left"><h2>12.0798 $AGENCY</h2></div>
+                      <div className="float-left"><h2>{expectedAmount}</h2></div>
                       <div className="float-left"><h2 className="text-black">Price impact</h2></div>
                       <div className="float-left"><h2>0%</h2></div>
                       <div className="float-left"><h2 className="text-black">Minimum received after slippage ( %0.5 )</h2></div>
@@ -359,10 +374,10 @@ export default function Exchange({...props}){
                     </div>
                   </div>
               </div>
-              {/* <div className="w-5/6 h-2/6 rounded-2xl border-4 border-black border-solid">
-                <button className="w-full text-black bg-white h-full rounded-2xl" onClick={increaseAllowanceOrSwapWrite}>{increaseAllowanceOrSwap()}</button>
-              </div> */}
-              <CustomConnectButton></CustomConnectButton>
+              <div className="w-5/6 h-2/6 rounded-2xl border-4 border-black border-solid">
+                <button className="w-full text-black bg-white h-full rounded-2xl" onClick={isDisconnected? openConnectModal : increaseAllowanceOrSwapWrite}>{ isDisconnected? "Connect wallet" : increaseAllowanceOrSwap()}</button>
+              </div>
+              {/* <CustomConnectButton></CustomConnectButton> */}
             </div>
           </div>
           {/* Stats */}
