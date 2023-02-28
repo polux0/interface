@@ -2,7 +2,7 @@ import ExchangeButton from './exchangebutton'
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useEffect, useState } from "react";
 import { ethers } from 'ethers';
-import { useAccount, useContractRead, useContractWrite, usePrepareContractWrite, useProvider, useWaitForTransaction } from 'wagmi'
+import { useAccount, useBalance, useContractRead, useContractWrite, usePrepareContractWrite, useProvider, useWaitForTransaction } from 'wagmi'
 import { useAddRecentTransaction } from '@rainbow-me/rainbowkit';
 import { agencyStableAbi, agencyUsdcAmmRouterAbi, agencyTreasurySeedAbi } from '../../contracts/abis'
 import useDebounce from '../../hooks/Debounce';
@@ -30,6 +30,7 @@ import {
     useChainModal,
   } from '@rainbow-me/rainbowkit';
 import { addressFormater } from '@/helpers/addressFormater';
+import enoughStables from '@/helpers/validation';
 
 export default function Exchange({...props}){
 
@@ -42,6 +43,10 @@ export default function Exchange({...props}){
     
     const addressFormated = addressFormater(address || "");
 
+    const { data, isError, isLoading } = useBalance({
+        address: address,
+        token: "0xD7295ab92c0BAe514dC33aB9Dd142f7d10AC413b"
+      })
     // technical debt: 
     // 1. adapt styles / css for components
     // 2. add margin from swap modal that will be percentage of screen height
@@ -371,9 +376,8 @@ export default function Exchange({...props}){
                   </div>
               </div>
               <div className="w-5/6 h-2/6 rounded-2xl border-4 border-black border-solid">
-                <button className="w-full text-black bg-white h-full rounded-2xl" onClick={isDisconnected? openConnectModal : increaseAllowanceOrSwapWrite}>{ isDisconnected? "Connect wallet" : increaseAllowanceOrSwap()}</button>
+                <button className="w-full text-black bg-white h-full rounded-2xl" onClick={isDisconnected? openConnectModal : increaseAllowanceOrSwapWrite}>{ isDisconnected? "Connect wallet" : enoughStables(data?.value.toString(), amountWeiNormalized) ? increaseAllowanceOrSwap(): "Insufficient USDC amount"}</button>
               </div>
-              {/* <CustomConnectButton></CustomConnectButton> */}
             </div>
           </div>
           {/* Stats */}
