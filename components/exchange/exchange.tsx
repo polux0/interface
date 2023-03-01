@@ -142,6 +142,7 @@ export default function Exchange({...props}){
     try {
          currentAllowanceNormalized = ethers.utils.parseUnits(currentAllowance.toString(), "ether").toString();
          amountWeiNormalized = ethers.utils.parseUnits(amountWei.toString(), "ether").toString();
+         console.log("amountWeiNormalized:", amountWeiNormalized)
          amountMinOutWeiValue = BigNumber.from(amountWei).sub(BigNumber.from(amountWei).div(10));
     } catch (error) {
         currentAllowanceNormalized = "0";
@@ -177,7 +178,7 @@ export default function Exchange({...props}){
         address: '0xD7295ab92c0BAe514dC33aB9Dd142f7d10AC413b',
         abi: agencyStableAbi,
         functionName: 'increaseAllowance',
-        args: ["0x5c41C8AF1C022ECadf1C309F8CCA489A93077a8b", amountWeiNormalized],
+        args: ["0xb08a51B76A5c00827336903598Dce825912bDeCc", amountWeiNormalized],
     })
     // treasurySeed ( done )
     const { config: swapExactFraxForTempleConfig } = usePrepareContractWrite({
@@ -210,10 +211,16 @@ export default function Exchange({...props}){
         
         const amountNormalized = ethers.utils.parseEther(amount).toString()
         const isCurrentAllowanceGreaterOrEqualToAmount = (BigNumber.from(currentAllowanceNormalized)).gte(BigNumber.from(amountNormalized));
-        return isCurrentAllowanceGreaterOrEqualToAmount ? "Swap" : "Increase allowance";
+        if(isCurrentAllowanceGreaterOrEqualToAmount){
+          if(enoughStables(data?.value.toString(), amountWeiNormalized)){
+            return "Swap"
+          }
+          else return "Not enough USDC balance"
+        }
+        else return "Increase allowance";
     }
-    function test(){
-        console.log("swap will fail")
+    function doNothing(){
+        console.log("swap would fail")
     }
     useWaitForTransaction({
         confirmations: 1,
@@ -223,6 +230,7 @@ export default function Exchange({...props}){
             fetchAllowance?.().then(increaseAllowancePromise =>{
                 const updatedAllowance = increaseAllowancePromise?.data as string
                 setCurrentAllowance(updatedAllowance);
+                console.log("currentAllowanceUpdated: ", updatedAllowance.toString())
             })
           },
       });
@@ -230,15 +238,30 @@ export default function Exchange({...props}){
     const increaseAllowanceOrSwapWrite = function(){
 
         const result = increaseAllowanceOrSwap()
-        result === "Swap" ? swapExactFraxForTempleWrite?.() : increaseAllowanceWrite?.();
+        // validation here? Shame...
+        if(result === "Swap"){
+          swapExactFraxForTempleWrite?.()
+        }
+        else if(result === "Increase allowance"){
+          increaseAllowanceWrite?.();
+        }
+        else{
+          doNothing()
+        }
+        // result === "Swap" ? swapExactFraxForTempleWrite?.() : increaseAllowanceWrite?.();
     }
     useEffect(
         () => {
           if (debouncedInputAmount) {
+            // tehnical debt
+            // if amount !=0
             fetchAllowance?.().then(currentAllowancePromise =>{
                 const result = currentAllowancePromise?.data as string
+                console.log("current allowance: ", result.toString())
                 setCurrentAllowance(result);
             })
+            // tehnical debt
+            // if amount !=0
             fetchQuote?.().then(quote => {
                 const result = quote?.data as any;
                 let amountOutAMM, amountOutProtocol, amountOut;
@@ -327,6 +350,9 @@ export default function Exchange({...props}){
                     </div>
                   </div>
                   {/* Settings dropdown */}
+                  {/* <div className='flex-none float-left'>
+                  <h4 className='text-sm text-white'>validation attempt</h4>
+                  </div> */}
               </div>
               <div className="flex justify-center items-center w-5/6 h-2/6 rounded-2xl" style={{backgroundColor}}>
                   <input className="w-2/3 h-2/3 text-4xl text-white p-4 focus:outline-0" style={{backgroundColor}} defaultValue={expectedAmount} type="number" min="0" onChange={e => {}}></input>
@@ -340,7 +366,7 @@ export default function Exchange({...props}){
                   <div id="dropdown" ref={currenciesPopoverDropdownRef} className={(currenciesDropdownPopoverShow ? "block " : "hidden ") + (color === "white" ? "bg-white " : backgroundColor1 + " ") +
                     "absolute text-base z-10 float-right w-1/6 py-2 list-none text-center rounded-2xl border-4 border-black border-solid shadow-lg mt-40 ml-36"
                   }>
-                    <h3 className='text-black'>Choose token</h3>
+                    <h3 className='text-black'>Choose token ( soon )</h3>
                     <div className="flex flex-col py-2 text-sm dark:text-gray-400 p-5">
                       <div onClick={()=>{console.log("FRAX"); closeCurrenciesDropdownPopover()}} className="flex justify-center items-center w-6/6 h-1/9 p-2 rounded-2xl border-2 border-gray hover:text-black hover:border-black border-solid mb-2.5 bg-white">
                         <button className="w-1/4"><Image alt="deployment test" src={usdcDarkSvg}></Image></button>
