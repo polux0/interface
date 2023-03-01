@@ -271,7 +271,6 @@ export default function Exchange({...props}){
         // should not be here as it violates single responsibillity principle
         setAmount(amountWei);
     }
-
     // experimenting
     return (
         <div className="h-screen bg-black p-6" style={{backgroundColor}}>
@@ -318,7 +317,7 @@ export default function Exchange({...props}){
                         <button className="w-1/4 h-full rounded-2xl border-2 border-gray mr-1">
                             Auto
                         </button>
-                        <input className="w-3/4 text-2xl text-white text-center p-4 rounded-2xl focus:outline-0" value={"0,5 %"}style={{backgroundColor}}></input>
+                        <input className="w-3/4 text-2xl text-white text-center p-4 rounded-2xl focus:outline-0" value={"0,5 %"}style={{backgroundColor}} onChange = {e => {}}></input>
                       </div>
                       <div className="w-6/6 h-full p-2 bg-white">
                         <div className="w-4/4 text-1xl">
@@ -384,7 +383,7 @@ export default function Exchange({...props}){
                         { isDisconnected? "Connect wallet" : enoughStables(data?.value.toString(), amountWeiNormalized) ? increaseAllowanceOrSwap(): "Insufficient USDC amount"}
                 </button> */}
                 <button className="w-full text-black bg-white h-full rounded-2xl" 
-                        onClick={() => {isDisconnected? openConnectModal : increaseAllowanceOrSwapWrite}}>
+                        onClick={isDisconnected ? openConnectModal : increaseAllowanceOrSwapWrite}>
                         { isDisconnected? "Connect wallet"  : increaseAllowanceOrSwap()}
                 </button>
               </div>
