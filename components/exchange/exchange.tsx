@@ -205,8 +205,11 @@ export default function Exchange({ ...props }) {
   useContractWrite({
     ... increaseAllowanceConfig,
     onSettled(data, error) {
+      console.log("increaseAllowanceError11111111111111111111111111111111111: ", error)
       error ? setTransactionStatus(TransationStatus.ERROR) : setTransactionStatus(TransationStatus.LOADING)
+      console.log("transactionStatus: ", transactionStatus)
       if(transactionStatus == TransationStatus.ERROR){
+        console.log("increaseAllowanceError111 TRANSACTION STATUS IS ERROR: ", error)
         setTimeout(function() { setTransactionStatus(TransationStatus.DEFAULT) }, 5000);
       }
     },
@@ -215,6 +218,7 @@ export default function Exchange({ ...props }) {
   useContractWrite({
     ...swapExactFraxForTempleConfig,
     onSettled(data, error) {
+      console.log("seedError: ", error)
       error ? setTransactionStatus(TransationStatus.ERROR) : setTransactionStatus(TransationStatus.LOADING)
       if(transactionStatus == TransationStatus.ERROR){
         setTimeout(function() { setTransactionStatus(TransationStatus.DEFAULT) }, 5000);
@@ -259,7 +263,8 @@ export default function Exchange({ ...props }) {
         const updatedAllowance = increaseAllowancePromise?.data as string
         setCurrentAllowance(updatedAllowance);
         setTransactionStatus(TransationStatus.SUCCESS)
-        setTimeout(function() { setTransactionStatus(TransationStatus.DEFAULT) }, 5000);
+        error? setTransactionStatus(TransationStatus.ERROR) : setTransactionStatus(TransationStatus.SUCCESS)
+        setTimeout(function() { setTransactionStatus(TransationStatus.DEFAULT) }, 6000);
       })
     },
   });
@@ -273,8 +278,8 @@ export default function Exchange({ ...props }) {
       //   const updatedAllowance = increaseAllowancePromise?.data as string
       //   setCurrentAllowance(updatedAllowance);
       // })
-      setTransactionStatus(TransationStatus.SUCCESS)
-      setTimeout(function() { setTransactionStatus(TransationStatus.DEFAULT) }, 5000);
+      error? setTransactionStatus(TransationStatus.ERROR) : setTransactionStatus(TransationStatus.SUCCESS)
+      setTimeout(function() { setTransactionStatus(TransationStatus.DEFAULT) }, 6000);
     },
   });
 
@@ -419,15 +424,15 @@ export default function Exchange({ ...props }) {
               }>
                 <h3 className='text-black'>Choose token ( soon )</h3>
                 <div className="flex flex-col py-2 text-sm dark:text-gray-400 p-5">
-                  <div onClick={() => { console.log("USDC"); closeCurrenciesDropdownPopover() }} className="flex justify-center items-center w-6/6 h-1/9 p-2 rounded-2xl border-2 border-gray hover:text-black hover:border-black hover:cursor-pointer border-solid mb-2.5 bg-white">
+                  <div onClick={() => {  closeCurrenciesDropdownPopover() }} className="flex justify-center items-center w-6/6 h-1/9 p-2 rounded-2xl border-2 border-gray hover:text-black hover:border-black hover:cursor-pointer border-solid mb-2.5 bg-white">
                     <button className="w-1/4"><Image alt="deployment test" src={usdcDarkSvg}></Image></button>
                     <div className="w-3/4 float-left mr-9"> $USDC </div>
                   </div>
-                  <div onClick={() => { console.log("FRAX"); closeCurrenciesDropdownPopover() }} className="flex justify-center items-center w-6/6 h-1/9 p-2 rounded-2xl border-2 border-black text-black hover:border-black hover:cursor-pointer border-solid mb-2.5 bg-white">
+                  <div onClick={() => {  closeCurrenciesDropdownPopover() }} className="flex justify-center items-center w-6/6 h-1/9 p-2 rounded-2xl border-2 border-black text-black hover:border-black hover:cursor-pointer border-solid mb-2.5 bg-white">
                     <button className="w-1/4"><Image alt="deployment test" src={usdcDarkSvg}></Image></button>
                     <div className="w-3/4 float-left mr-9"> $FRAX </div>
                   </div>
-                  <div onClick={() => { console.log("USDT"); closeCurrenciesDropdownPopover() }} className="flex justify-center items-center w-6/6 h-1/9 p-2 rounded-2xl border-2 border-black text-black hover:border-black hover:cursor-pointer border-solid mb-2.5 bg-white">
+                  <div onClick={() => {  closeCurrenciesDropdownPopover() }} className="flex justify-center items-center w-6/6 h-1/9 p-2 rounded-2xl border-2 border-black text-black hover:border-black hover:cursor-pointer border-solid mb-2.5 bg-white">
                     <button className="w-1/4"><Image alt="deployment test" src={usdcDarkSvg}></Image></button>
                     <div className="w-3/4 float-left mr-9"> $USDT </div>
                   </div>
