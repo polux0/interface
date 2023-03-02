@@ -4,7 +4,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ethers } from 'ethers';
 import { useAccount, useBalance, useContractRead, useContractWrite, usePrepareContractWrite, useProvider, useWaitForTransaction } from 'wagmi'
 import { useAddRecentTransaction } from '@rainbow-me/rainbowkit';
-import { agencyStableAbi, agencyUsdcAmmRouterAbi, agencyTreasurySeedAbi } from '../../contracts/abis'
+import { agencyStableAbi, agencyTreasurySeedAbi } from '../../contracts/abis'
 import useDebounce from '../../hooks/Debounce';
 import { BigNumber } from 'ethers';
 import Image from 'next/image';
@@ -143,6 +143,7 @@ export default function Exchange({ ...props }) {
   // const [ currentAllowanceIncreased, setCurrentAllowanceIncreased] = useState(false);
   const [transactionStatus, setTransactionStatus] = React.useState<TransationStatus>(TransationStatus.DEFAULT);
   const [amountInInputWidth, setAmountInInputWidth] = React.useState(0);
+  const [amountInInputHeight, setAmountInInputHeight] = React.useState(0);
 
   const debouncedInputAmount = useDebounce(amount, 800);
 
@@ -330,9 +331,8 @@ export default function Exchange({ ...props }) {
   );
   useEffect(() => {
     function handleWindowResize() {
-      console.log('width', amountInInputRef.current.clientWidth);
       setAmountInInputWidth(amountInInputRef.current.clientWidth)
-      console.log(amountInInputRef.current.clientWidth);
+      setAmountInInputHeight(amountInInputRef.current.clientHeight)
     }
 
     window.addEventListener('resize', handleWindowResize);
@@ -394,7 +394,6 @@ export default function Exchange({ ...props }) {
               {/* Settings dropdown */}
               <div id="dropdown" ref={settingsPopoverDropdownRef} className={(settingsDropdownPopoverShow ? "block " : "hidden ") + (color === "white" ? "bg-white " : backgroundColor1 + " ") +
                 "absolute text-base z-10 float-right w-1/6 h-2/6 py-2 list-none text-center rounded-2xl border-4 border-black border-solid shadow-lg p-5 mt-40"
-                // "absolute text-base z-10 float-right w-1/6 h-2/6 py-2 list-none text-center rounded-2xl border-4 border-black border-solid shadow-lg p-5 mt-40 ml-36"
               } style={{minWidth: '250px', marginLeft: Math.max(amountInInputWidth - 250, 0)}}>
                 <h3 className='text-black xsm:mb-1'>Slippage tolerance</h3>
                 <div className="flex flex-col h-4/5 py-2 text-sm dark:text-gray-400">
@@ -433,8 +432,8 @@ export default function Exchange({ ...props }) {
               </button>
               {/* Currencies dropdown */}
               <div id="dropdown" ref={currenciesPopoverDropdownRef} className={(currenciesDropdownPopoverShow ? "block " : "hidden ") + (color === "white" ? "bg-white " : backgroundColor1 + " ") +
-                "absolute text-base z-10 float-right w-1/6 py-2 list-none text-center rounded-2xl border-4 border-black border-solid shadow-lg mt-40 ml-36"
-              }>
+                "absolute text-base z-10 float-right w-1/6 py-2 list-none text-center rounded-2xl border-4 border-black border-solid shadow-lg mt-40"
+              } style={{minWidth: '250px', marginLeft: Math.max(amountInInputWidth - 250, 0)}}>
                 <h3 className='text-black'>Choose token ( soon )</h3>
                 <div className="flex flex-col py-2 text-sm dark:text-gray-400 p-5">
                   <div onClick={() => {  closeCurrenciesDropdownPopover() }} className="flex justify-center items-center w-6/6 h-1/9 p-2 rounded-2xl border-2 border-gray hover:text-black hover:border-black hover:cursor-pointer border-solid mb-2.5 bg-white">
@@ -454,10 +453,10 @@ export default function Exchange({ ...props }) {
               {/* Currencies dropdown */}
               {/* Additional trade info dropdown */}
               <div id="dropdown" ref={additionalTradeInfoPopoverDropdownRef} className={(additionalTradeInfoDropdownPopoverShow ? "block " : "hidden ") + (color === "white" ? "bg-white " : backgroundColor1 + " ") +
-                "absolute text-base z-10 float-right h-2/6 w-1/5 py-2 list-none rounded-2xl border-4 border-black border-solid shadow-lg mx-0	my-0 p-5"
-              }>
-                <div className="flex flex-col space-y-2 py-4 text-sm dark:text-gray-400 p-2">
-                  <div className="mb-6">
+                "absolute text-base z-10 float-right h-2/6 w-1/5 py-2 list-none rounded-2xl border-4 border-black border-solid shadow-lg mx-0	my-0 p-5 xsm:min-w-250"
+              } style={{minWidth: Math.max(0.8 * amountInInputWidth, 250), minHeight: 3 * amountInInputHeight + 5 }}>
+                <div className="flex flex-col space-y-1 py-4 text-sm dark:text-gray-400 p-2">
+                  <div className="mb-3">
                     <h3 className="float-left text-lg text-black">More details</h3>
                     <h3 className="float-right text-lg text-black hover:cursor-pointer" onClick={() => { if (additionalTradeInfoDropdownPopoverShow) { closeAdditionalTradeInfoDropdownPopover() } }}>X</h3>
                   </div>
@@ -473,10 +472,6 @@ export default function Exchange({ ...props }) {
               </div>
             </div>
             <div className="w-5/6 h-2/6 rounded-2xl border-4 border-black border-solid">
-              {/* <button className="w-full text-black bg-white h-full rounded-2xl" 
-                        onClick={() => {isDisconnected? openConnectModal : enoughStables(data?.value.toString(), amountWeiNormalized) ? increaseAllowanceOrSwapWrite : test()}}>
-                        { isDisconnected? "Connect wallet" : enoughStables(data?.value.toString(), amountWeiNormalized) ? increaseAllowanceOrSwap(): "Insufficient USDC amount"}
-                </button> */}
               <button className="w-full text-black bg-white h-full rounded-2xl"
                 onClick={isDisconnected ? openConnectModal : increaseAllowanceOrSwapWrite}>
                 {isDisconnected ? "Connect wallet" : increaseAllowanceOrSwap()}
