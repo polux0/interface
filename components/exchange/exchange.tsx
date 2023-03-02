@@ -329,6 +329,13 @@ export default function Exchange({ ...props }) {
     },
     [debouncedInputAmount, fetchAllowance, fetchQuote, provider] // Only call effect if debounced search term changes
   );
+  
+
+  useLayoutEffect(() => {
+      setAmountInInputWidth(amountInInputRef.current.clientWidth)
+      setAmountInInputHeight(amountInInputRef.current.clientHeight)
+  }, []);
+
   useEffect(() => {
     function handleWindowResize() {
       setAmountInInputWidth(amountInInputRef.current.clientWidth)
