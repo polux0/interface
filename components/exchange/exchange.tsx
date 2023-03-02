@@ -419,15 +419,15 @@ export default function Exchange({ ...props }) {
               }>
                 <h3 className='text-black'>Choose token ( soon )</h3>
                 <div className="flex flex-col py-2 text-sm dark:text-gray-400 p-5">
-                  <div onClick={() => { console.log("FRAX"); closeCurrenciesDropdownPopover() }} className="flex justify-center items-center w-6/6 h-1/9 p-2 rounded-2xl border-2 border-gray hover:text-black hover:border-black border-solid mb-2.5 bg-white">
-                    <button className="w-1/4"><Image alt="deployment test" src={usdcDarkSvg}></Image></button>
-                    <div className="w-3/4 float-left mr-9"> $FRAX </div>
-                  </div>
-                  <div onClick={() => { console.log("USDC"); closeCurrenciesDropdownPopover() }} className="flex justify-center items-center w-6/6 h-1/9 p-2 rounded-2xl border-2 border-gray hover:text-black hover:border-black border-solid mb-2.5 bg-white">
+                  <div onClick={() => { console.log("USDC"); closeCurrenciesDropdownPopover() }} className="flex justify-center items-center w-6/6 h-1/9 p-2 rounded-2xl border-2 border-gray hover:text-black hover:border-black hover:cursor-pointer border-solid mb-2.5 bg-white">
                     <button className="w-1/4"><Image alt="deployment test" src={usdcDarkSvg}></Image></button>
                     <div className="w-3/4 float-left mr-9"> $USDC </div>
                   </div>
-                  <div onClick={() => { console.log("USDT"); closeCurrenciesDropdownPopover() }} className="flex justify-center items-center w-6/6 h-1/9 p-2 rounded-2xl border-2 border-gray hover:text-black hover:border-black border-solid mb-2.5 bg-white">
+                  <div onClick={() => { console.log("FRAX"); closeCurrenciesDropdownPopover() }} className="flex justify-center items-center w-6/6 h-1/9 p-2 rounded-2xl border-2 border-black text-black hover:border-black hover:cursor-pointer border-solid mb-2.5 bg-white">
+                    <button className="w-1/4"><Image alt="deployment test" src={usdcDarkSvg}></Image></button>
+                    <div className="w-3/4 float-left mr-9"> $FRAX </div>
+                  </div>
+                  <div onClick={() => { console.log("USDT"); closeCurrenciesDropdownPopover() }} className="flex justify-center items-center w-6/6 h-1/9 p-2 rounded-2xl border-2 border-black text-black hover:border-black hover:cursor-pointer border-solid mb-2.5 bg-white">
                     <button className="w-1/4"><Image alt="deployment test" src={usdcDarkSvg}></Image></button>
                     <div className="w-3/4 float-left mr-9"> $USDT </div>
                   </div>
