@@ -1,6 +1,6 @@
 import ExchangeButton from './exchangebutton'
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ethers } from 'ethers';
 import { useAccount, useBalance, useContractRead, useContractWrite, usePrepareContractWrite, useProvider, useWaitForTransaction } from 'wagmi'
 import { useAddRecentTransaction } from '@rainbow-me/rainbowkit';
@@ -71,6 +71,7 @@ export default function Exchange({ ...props }) {
   // const differenceBetweenExchangeModalAndLogoWidth:  ExchangeModalWidth - logoWidth = 572 - 289 = 283 / 2 ( to be centered ) = 141.5
   // const FinalMargin: alignWithExchangeModal+differenceBetweenExchangeModalAndLogoWidth
 
+  const amountInInputRef: any = useRef();
   // technial debt? this could be componentized
   // currencies dropdown
   const [currenciesDropdownPopoverShow, setCurrenciesDropdownPopoverShow] = React.useState(false);
@@ -141,7 +142,7 @@ export default function Exchange({ ...props }) {
   const [expectedAmount, setExpectedAmount] = useState("0");
   // const [ currentAllowanceIncreased, setCurrentAllowanceIncreased] = useState(false);
   const [transactionStatus, setTransactionStatus] = React.useState<TransationStatus>(TransationStatus.DEFAULT);
-
+  const [amountInInputWidth, setAmountInInputWidth] = React.useState(0);
 
   const debouncedInputAmount = useDebounce(amount, 800);
 
@@ -327,6 +328,19 @@ export default function Exchange({ ...props }) {
     },
     [debouncedInputAmount, fetchAllowance, fetchQuote, provider] // Only call effect if debounced search term changes
   );
+  useEffect(() => {
+    function handleWindowResize() {
+      console.log('width', amountInInputRef.current.clientWidth);
+      setAmountInInputWidth(amountInInputRef.current.clientWidth)
+      console.log(amountInInputRef.current.clientWidth);
+    }
+
+    window.addEventListener('resize', handleWindowResize);
+
+    return () => {
+      window.removeEventListener('resize', handleWindowResize);
+    };
+  }, []);
   async function amountHandler(event: any) {
     const amount: any = event.target.value;
     let amountWei;
@@ -361,8 +375,6 @@ export default function Exchange({ ...props }) {
         <div className="h-max 2xl:w-4/12 xl:w-5/12 lg:w-6/12 bg-white rounded-3xl p-6" style={exchangeContainerHeight}>
           <div className="w-full h-1/6">
             <button className="float-right" onClick={() => {
-              console.log("height: ", window.innerHeight)
-              console.log("width: ", window.innerWidth)
               settingsDropdownPopoverShow
                 ? closeSettingsDropdownPopover()
                 : openSettingsDropdownPopover();
@@ -370,7 +382,7 @@ export default function Exchange({ ...props }) {
           </div>
           {/* Swap */}
           <div className="flex flex-col justify-center items-center space-y-2 h-2/3">
-            <div className="flex justify-center items-center w-5/6 h-2/6 rounded-2xl" style={{ backgroundColor }}>
+            <div className="flex justify-center items-center w-5/6 h-2/6 rounded-2xl" ref={amountInInputRef} style={{ backgroundColor }}>
               <input className="w-2/3 h-2/3 text-4xl text-white p-4 focus:outline-0" style={{ backgroundColor }} type="number" min="0" value={amount} onChange={e => amountHandler(e)}></input>
               <button className="w-1/6 h-1/2"><Image alt="deployment test" className="float-right" src={usdcSvg}></Image></button>
               <button className="w-1/6 h-1/2" onClick={() => {
@@ -381,9 +393,10 @@ export default function Exchange({ ...props }) {
               ><Image alt="deployment test" src={dropDownSvg} style={imageStyle}></Image></button>
               {/* Settings dropdown */}
               <div id="dropdown" ref={settingsPopoverDropdownRef} className={(settingsDropdownPopoverShow ? "block " : "hidden ") + (color === "white" ? "bg-white " : backgroundColor1 + " ") +
-                "absolute text-base z-10 float-right w-1/6 h-2/6 py-2 list-none text-center rounded-2xl border-4 border-black border-solid shadow-lg p-5 mt-40 ml-36"
-              }>
-                <h3 className='text-black'>Slippage tolerance</h3>
+                "absolute text-base z-10 float-right w-1/6 h-2/6 py-2 list-none text-center rounded-2xl border-4 border-black border-solid shadow-lg p-5 mt-40"
+                // "absolute text-base z-10 float-right w-1/6 h-2/6 py-2 list-none text-center rounded-2xl border-4 border-black border-solid shadow-lg p-5 mt-40 ml-36"
+              } style={{minWidth: '250px', marginLeft: Math.max(amountInInputWidth - 250, 0)}}>
+                <h3 className='text-black xsm:mb-1'>Slippage tolerance</h3>
                 <div className="flex flex-col h-4/5 py-2 text-sm dark:text-gray-400">
                   <div className="flex justify-center items-center text-center w-6/6 h-1/3 bg-white">
                     <button className="w-1/4 h-full rounded-2xl border-2 border-gray mr-1">
@@ -391,7 +404,7 @@ export default function Exchange({ ...props }) {
                     </button>
                     <input className="w-3/4 text-2xl text-white text-center p-4 rounded-2xl focus:outline-0" value={"0,5 %"} style={{ backgroundColor }} onChange={e => { }}></input>
                   </div>
-                  <div className="w-6/6 h-full p-2 bg-white">
+                  <div className="w-6/6 h-full p-2 bg-white xsm:mt-2.5">
                     <div className="w-4/4 text-1xl">
                       Your transaction will revert if the price changes unfavorably by more than this percentage during your order.
                     </div>
