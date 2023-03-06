@@ -1,5 +1,3 @@
-import ExchangeButton from './exchangebutton'
-import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ethers } from 'ethers';
 import { useAccount, useBalance, useContractRead, useContractWrite, usePrepareContractWrite, useProvider, useWaitForTransaction } from 'wagmi'
@@ -331,10 +329,13 @@ export default function Exchange({ ...props }) {
   );
   
 
-  useLayoutEffect(() => {
-      setAmountInInputWidth(amountInInputRef.current.clientWidth)
-      setAmountInInputHeight(amountInInputRef.current.clientHeight)
-  }, []);
+  // useLayoutEffect(() => {
+  //     console.log("should be initial width: ", amountInInputRef.current.clientWidth )
+  //     console.log("should be initial height: ", amountInInputRef.current.clientHeight )
+
+  //     setAmountInInputWidth(amountInInputRef.current.clientWidth)
+  //     setAmountInInputHeight(amountInInputRef.current.clientHeight)
+  // }, []);
 
   useEffect(() => {
     function handleWindowResize() {
@@ -367,10 +368,11 @@ export default function Exchange({ ...props }) {
       {/* Header */}
       <div className="grid 2xl:grid-cols-7 xl:grid-cols-7 lg:grid-cols-7 md:grid-cols-7 sm:grid-cols-5">
         <div className="2xl:col-start-3 col-span-2 2xl:place-self-center xl:col-start-3 col-span-2 xl:place-self-center lg:col-start-3 col-span-3 lg:place-self-center md:col-start-3 col-span-2 md:place-self-center sm:col-start-2 col-span-3 sm:place-self-end xsm: col-start-2 place-self-center"><Image alt="deployment test" className="2xl:ml-0 xl:ml-0 md:ml-0 sm:ml-12" src={agencyLogoSvg}></Image></div>
-        <div className="col-start-7 text-white place-self-center hover:cursor-pointer xsm:hidden sm:block md:block lg:block xl:block 2xl:block">
-          <h1 className="mb-3.5" onClick={openAccountModal}>
+        <div className="col-start-7 text-white hover:cursor-pointer xsm:hidden sm:block md:block lg:block xl:block 2xl:block">
+          <h1 className="mb-3.5 mr-1.5 float-left" onClick={openAccountModal}>
             {mounted ? addressFormated : ""}
           </h1>
+          <Image className="w-17 h-17" alt="deployment test" src={dropDownSvg}></Image>
         </div>
         <div className="col-start-6 text-white place-self-center sm:place-self-center sm:mb-3.5 xsm:mb-3.5 hover:cursor-pointer xsm:block sm:hidden md:hidden lg:hidden xl:hidden 2xl:hidden"><Image alt="deployment test" className="mb-1" src={userWalletMobileScreenSvg}></Image></div>
       </div>
@@ -503,7 +505,4 @@ export default function Exchange({ ...props }) {
       </div>
     </div>
   )
-}
-function isWalletConnected(connected: boolean) {
-  return connected ? <ExchangeButton></ExchangeButton> : <ConnectButton></ConnectButton>
 }
