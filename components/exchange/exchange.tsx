@@ -1,11 +1,14 @@
+import React from "react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ethers } from 'ethers';
-import { useAccount, useBalance, useContractRead, useContractWrite, usePrepareContractWrite, useProvider, useWaitForTransaction } from 'wagmi'
+import { Chain, useAccount, useBalance, useContractRead, useContractWrite, usePrepareContractWrite, useProvider, useWaitForTransaction } from 'wagmi'
 import { useAddRecentTransaction } from '@rainbow-me/rainbowkit';
 import { agencyStableAbi, agencyTreasurySeedAbi } from '../../contracts/abis'
 import useDebounce from '../../hooks/Debounce';
 import { BigNumber } from 'ethers';
 import Image from 'next/image';
+
+import { useNetwork } from 'wagmi'
 
 
 // technical debt - create separate module
@@ -20,9 +23,10 @@ import statsSvg from "../../public/stats-icon-svg.svg";
 import userWalletMobileScreenSvg from "../../public/user-wallet-small-screen-svg.svg";
 import successIndicator from "../../public/success-indicator-svg.svg"
 import errorIndicator from "../../public/error-indicator-svg.svg"
+import accountModalOpenIndicator from "../../public/another-dropdown-indicator.svg"
+
 
 import { useIsMounted } from "../../helpers/useIsMounted"
-import React from "react";
 import { createPopper } from "@popperjs/core";
 
 import {
@@ -39,10 +43,8 @@ export default function Exchange({ ...props }) {
   const { openAccountModal } = useAccountModal();
   const { openChainModal } = useChainModal();
   const mounted = useIsMounted();
-
   const { address, isConnecting, isDisconnected } = useAccount()
-
-  const addressFormated = addressFormater(address || "");
+  const { chain, chains } = useNetwork()
 
   const { data, isError, isLoading } = useBalance({
     address: address,
@@ -254,6 +256,9 @@ export default function Exchange({ ...props }) {
   function doNothing() {
     console.log("swap would fail")
   }
+  function isChainSupported(chain: any){
+    return chain && chains ? chains.map(chain => chain.id).includes(chain.id) : false; 
+  }
   useWaitForTransaction({
     confirmations: 1,
     hash: increaseAllowanceData?.hash,
@@ -336,7 +341,8 @@ export default function Exchange({ ...props }) {
   //     setAmountInInputWidth(amountInInputRef.current.clientWidth)
   //     setAmountInInputHeight(amountInInputRef.current.clientHeight)
   // }, []);
-
+  
+  
   useEffect(() => {
     function handleWindowResize() {
       setAmountInInputWidth(amountInInputRef.current.clientWidth)
@@ -349,6 +355,7 @@ export default function Exchange({ ...props }) {
       window.removeEventListener('resize', handleWindowResize);
     };
   }, []);
+  
   async function amountHandler(event: any) {
     const amount: any = event.target.value;
     let amountWei;
@@ -364,15 +371,18 @@ export default function Exchange({ ...props }) {
   }
   // experimenting
   return (
+    
     <div className="h-screen bg-black p-6" style={{ backgroundColor }}>
+      {isChainSupported(chain)}
       {/* Header */}
       <div className="grid 2xl:grid-cols-7 xl:grid-cols-7 lg:grid-cols-7 md:grid-cols-7 sm:grid-cols-5">
         <div className="2xl:col-start-3 col-span-2 2xl:place-self-center xl:col-start-3 col-span-2 xl:place-self-center lg:col-start-3 col-span-3 lg:place-self-center md:col-start-3 col-span-2 md:place-self-center sm:col-start-2 col-span-3 sm:place-self-end xsm: col-start-2 place-self-center"><Image alt="deployment test" className="2xl:ml-0 xl:ml-0 md:ml-0 sm:ml-12" src={agencyLogoSvg}></Image></div>
         <div className="col-start-7 text-white hover:cursor-pointer xsm:hidden sm:block md:block lg:block xl:block 2xl:block">
-          <h1 className="mb-3.5 mr-1.5 float-left" onClick={openAccountModal}>
-            {mounted ? addressFormated : ""}
+          <h1 className="mb-3.5 mr-px float-left" onClick={openAccountModal}>
+            {mounted ? addressFormater(address ?? "") : ""}
           </h1>
-          <Image className="w-17 h-17" alt="deployment test" src={dropDownSvg}></Image>
+          <Image className={"mt-2 ml-2"} alt="deployment test" src={accountModalOpenIndicator} onClick={openAccountModal} style={{display: isDisconnected? "none" : "block"}}></Image>
+          {isChainSupported(chain) ? <div className="w-1/2" onClick={openChainModal}><h1 className="place-self-start"> unsupported network </h1></div> : <div></div>}
         </div>
         <div className="col-start-6 text-white place-self-center sm:place-self-center sm:mb-3.5 xsm:mb-3.5 hover:cursor-pointer xsm:block sm:hidden md:hidden lg:hidden xl:hidden 2xl:hidden"><Image alt="deployment test" className="mb-1" src={userWalletMobileScreenSvg}></Image></div>
       </div>
