@@ -1,11 +1,14 @@
+import React from "react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ethers } from 'ethers';
-import { useAccount, useBalance, useContractRead, useContractWrite, usePrepareContractWrite, useProvider, useWaitForTransaction } from 'wagmi'
+import { Chain, useAccount, useBalance, useContractRead, useContractWrite, usePrepareContractWrite, useProvider, useWaitForTransaction } from 'wagmi'
 import { useAddRecentTransaction } from '@rainbow-me/rainbowkit';
 import { agencyStableAbi, agencyTreasurySeedAbi } from '../../contracts/abis'
 import useDebounce from '../../hooks/Debounce';
 import { BigNumber } from 'ethers';
 import Image from 'next/image';
+
+import { useNetwork } from 'wagmi'
 
 
 // technical debt - create separate module
@@ -20,9 +23,10 @@ import statsSvg from "../../public/stats-icon-svg.svg";
 import userWalletMobileScreenSvg from "../../public/user-wallet-small-screen-svg.svg";
 import successIndicator from "../../public/success-indicator-svg.svg"
 import errorIndicator from "../../public/error-indicator-svg.svg"
+import accountModalOpenIndicator from "../../public/another-dropdown-indicator.svg"
+
 
 import { useIsMounted } from "../../helpers/useIsMounted"
-import React from "react";
 import { createPopper } from "@popperjs/core";
 
 import {
@@ -31,7 +35,7 @@ import {
   useChainModal,
 } from '@rainbow-me/rainbowkit';
 import { addressFormater } from '@/helpers/addressFormater';
-import enoughStables from '@/helpers/validation';
+import isGreaterThanOrEqualTo from '@/helpers/validation';
 
 export default function Exchange({ ...props }) {
 
@@ -39,10 +43,9 @@ export default function Exchange({ ...props }) {
   const { openAccountModal } = useAccountModal();
   const { openChainModal } = useChainModal();
   const mounted = useIsMounted();
-
   const { address, isConnecting, isDisconnected } = useAccount()
-
-  const addressFormated = addressFormater(address || "");
+  const isConnected = !isDisconnected;
+  const { chain, chains } = useNetwork()
 
   const { data, isError, isLoading } = useBalance({
     address: address,
@@ -62,9 +65,7 @@ export default function Exchange({ ...props }) {
   const exchangeContainerHeight = { height: "500px" };
   const color = "white";
   const backgroundColor1 = "yellow";
-  const dynamicallMargin = {
-    marginTop: "calc(100vh / 7)"
-  }
+
   // const alignWithExchangeModal: ( screenWidth - exchangeModalWidth) / 2 = 375.5
   // const differenceBetweenExchangeModalAndLogoWidth:  ExchangeModalWidth - logoWidth = 572 - 289 = 283 / 2 ( to be centered ) = 141.5
   // const FinalMargin: alignWithExchangeModal+differenceBetweenExchangeModalAndLogoWidth
@@ -127,6 +128,19 @@ export default function Exchange({ ...props }) {
     SUCCESS = "SUCCESS",
     ERROR = "ERROR",
   }
+  enum ActionStatus {
+    CONNECT_WALLET = "Connect wallet",
+    SWITCH_NETWORK = "Switch network",
+    INCREASE_ALLOWANCE = "Increase allowance",
+    INSSUFICIENT_STABLES = "Not enough USDC balance",
+    EXCHANGE = "Swap"
+  }
+  interface Validation{
+    isConnected: boolean,
+    isChainSupported: boolean,
+    isEnoughAllowance: boolean,
+    isEnoughStables: boolean,
+  }
 
   // technical debt
   // 2. create config for contracts ( hooks )
@@ -136,9 +150,8 @@ export default function Exchange({ ...props }) {
 
   const [amount, setAmount] = useState("0");
   const [amountWei, setAmountWei] = useState("0");
-  const [currentAllowance, setCurrentAllowance] = useState("0");
+  const [currentAllowanceWei, setCurrentAllowanceWei] = useState("0");
   const [expectedAmount, setExpectedAmount] = useState("0");
-  // const [ currentAllowanceIncreased, setCurrentAllowanceIncreased] = useState(false);
   const [transactionStatus, setTransactionStatus] = React.useState<TransationStatus>(TransationStatus.DEFAULT);
   const [amountInInputWidth, setAmountInInputWidth] = React.useState(0);
   const [amountInInputHeight, setAmountInInputHeight] = React.useState(0);
@@ -148,18 +161,14 @@ export default function Exchange({ ...props }) {
   // technical debt 
   // user should set it's `deadline` as well as `slippage`
 
-  let currentAllowanceNormalized;
   let amountWeiNormalized: unknown;
   let amountMinOutWeiValue;
   try {
-    currentAllowanceNormalized = ethers.utils.parseUnits(currentAllowance.toString(), "ether").toString();
     amountWeiNormalized = ethers.utils.parseUnits(amountWei.toString(), "ether").toString();
     amountMinOutWeiValue = BigNumber.from(amountWei).sub(BigNumber.from(amountWei).div(10));
   } catch (error) {
-    currentAllowanceNormalized = "0";
     amountWeiNormalized = "0";
     amountMinOutWeiValue = BigNumber.from("0");
-
   }
   // technical debt - move all of those functions to separate module
   // 🤖 deployer address 0xD3d5B16a5B25AafffC9A9459Af4de2a38bc8d659
@@ -206,7 +215,15 @@ export default function Exchange({ ...props }) {
     ... increaseAllowanceConfig,
     onSettled(data, error) {
       console.log("increaseAllowanceError11111111111111111111111111111111111: ", error)
-      error ? setTransactionStatus(TransationStatus.ERROR) : setTransactionStatus(TransationStatus.LOADING)
+      if(error){
+        console.log("error: ", error)
+        setTransactionStatus(TransationStatus.ERROR)
+        console.log("transactionStatus: ", transactionStatus)
+      }
+      else{
+        setTransactionStatus(TransationStatus.LOADING)
+      }
+      // error ? setTransactionStatus(TransationStatus.ERROR) : setTransactionStatus(TransationStatus.LOADING)
       console.log("transactionStatus: ", transactionStatus)
       if(transactionStatus == TransationStatus.ERROR){
         console.log("increaseAllowanceError111 TRANSACTION STATUS IS ERROR: ", error)
@@ -231,28 +248,28 @@ export default function Exchange({ ...props }) {
   if (swapExactFraxForTempleWriteError) {
     console.log('Error with `usePrepareContractWriteswapExactFraxForTempleWrite`: ', swapExactFraxForTempleWriteError)
   }
+  //
   const increaseAllowanceOrSwap = function () {
     // technical debt
     // question: should we put `currentAllowanceNormalized` && `amountNormalized` as part of state
-    let currentAllowanceNormalized;
-    try {
-      currentAllowanceNormalized = BigNumber.from(currentAllowance).toString();
-    } catch (error) {
-      currentAllowanceNormalized = "0";
-    }
+    const amountWei = ethers.utils.parseEther(amount).toString()
+    const enoughAllowance = isEnoughAllowance(amountWei, currentAllowanceWei)
 
-    const amountNormalized = ethers.utils.parseEther(amount).toString()
-    const isCurrentAllowanceGreaterOrEqualToAmount = (BigNumber.from(currentAllowanceNormalized)).gte(BigNumber.from(amountNormalized));
-    if (isCurrentAllowanceGreaterOrEqualToAmount) {
-      if (enoughStables(data?.value.toString(), amountWeiNormalized)) {
+    if (enoughAllowance) {
+      if (isGreaterThanOrEqualTo(data?.value.toString(), amountWeiNormalized)) {
         return "Swap"
       }
       else return "Not enough USDC balance"
     }
     else return "Increase allowance";
   }
+
   function doNothing() {
-    console.log("swap would fail")
+    return;
+  }
+  function isChainSupported(chain: any){
+    
+    return chain && chains ? chains.map(chain => chain.id).includes(chain.id) : false; 
   }
   useWaitForTransaction({
     confirmations: 1,
@@ -261,7 +278,7 @@ export default function Exchange({ ...props }) {
       console.log('Increase allowance settled', { data, error })
       fetchAllowance?.().then(increaseAllowancePromise => {
         const updatedAllowance = increaseAllowancePromise?.data as string
-        setCurrentAllowance(updatedAllowance);
+        setCurrentAllowanceWei(updatedAllowance.toString());
         setTransactionStatus(TransationStatus.SUCCESS)
         error? setTransactionStatus(TransationStatus.ERROR) : setTransactionStatus(TransationStatus.SUCCESS)
         setTimeout(function() { setTransactionStatus(TransationStatus.DEFAULT) }, 6000);
@@ -274,10 +291,6 @@ export default function Exchange({ ...props }) {
     onSettled(data, error) {
       console.log('Seed settled', { data, error })
       // check for agency balance and increase ?
-      // fetchAllowance?.().then(increaseAllowancePromise => {
-      //   const updatedAllowance = increaseAllowancePromise?.data as string
-      //   setCurrentAllowance(updatedAllowance);
-      // })
       error? setTransactionStatus(TransationStatus.ERROR) : setTransactionStatus(TransationStatus.SUCCESS)
       setTimeout(function() { setTransactionStatus(TransationStatus.DEFAULT) }, 6000);
     },
@@ -300,32 +313,31 @@ export default function Exchange({ ...props }) {
   useEffect(
     () => {
       if (debouncedInputAmount) {
-        // tehnical debt
-        // if amount !=0
-        fetchAllowance?.().then(currentAllowancePromise => {
-          const result = currentAllowancePromise?.data as string
-          setCurrentAllowance(result);
-        })
-        // tehnical debt
-        // if amount !=0
-        fetchQuote?.().then(quote => {
-          const result = quote?.data as any;
-          let amountOutAMM, amountOutProtocol, amountOut;
-          try {
-            amountOut = ethers.utils.formatUnits(result, "wei") || 0;
-          } catch (error) {
-            amountOutAMM = 0
-            amountOutProtocol = 0
-            amountOut = 0
-          }
-          setExpectedAmount(amountOut.toString())
-        });
+        if(Number(amount) > 0 && isChainSupported(chain)){
+          fetchAllowance?.().then(currentAllowancePromise => {
+            const result = currentAllowancePromise?.data as string
+            setCurrentAllowanceWei(result.toString());
+            console.log("current allowance, response from a contract: ", result.toString())
+          })
+          fetchQuote?.().then(quote => {
+            const result = quote?.data as any;
+            let amountOutAMM, amountOutProtocol, amountOut;
+            try {
+              amountOut = ethers.utils.formatUnits(result, "wei") || 0;
+            } catch (error) {
+              amountOutAMM = 0
+              amountOutProtocol = 0
+              amountOut = 0
+            }
+            setExpectedAmount(amountOut.toString())
+          });
+        }
       } else {
-        setCurrentAllowance("0");
+        setCurrentAllowanceWei(currentAllowanceWei);
         setExpectedAmount("0")
       }
     },
-    [debouncedInputAmount, fetchAllowance, fetchQuote, provider] // Only call effect if debounced search term changes
+    [amount, chain, debouncedInputAmount, fetchAllowance, fetchQuote, isChainSupported, provider] // Only call effect if debounced search term changes
   );
   
 
@@ -337,6 +349,81 @@ export default function Exchange({ ...props }) {
   //     setAmountInInputHeight(amountInInputRef.current.clientHeight)
   // }, []);
 
+  
+  function isEnoughAllowance(amount: string, allowance: string){
+    const amountWei = ethers.utils.parseEther(amount).toString()
+    return isGreaterThanOrEqualTo(currentAllowanceWei, amountWei);
+  }
+  function isEnoughStables(amount: string, allowance: string){
+    return isGreaterThanOrEqualTo(amount, allowance);
+  }
+  function determineButtonAction(){
+    const validation: Validation = {
+      isConnected: false,
+      isChainSupported: false,
+      isEnoughAllowance: false,
+      isEnoughStables: false,
+    };
+    if(!isConnected){
+      validation.isConnected = false;
+      return openConnectModal;
+    }
+    if(!isChainSupported(chain)){
+      validation.isChainSupported = false;
+      return openChainModal;
+    }
+    if(!isEnoughAllowance){
+      validation.isEnoughAllowance = false;
+      return increaseAllowanceWrite;
+    }
+    if(!isEnoughStables(data?.value.toString() ?? "0", amountWei)){
+      validation.isEnoughStables = false;
+    }
+    let exchangePreconditionsFulfilled: Boolean = true
+    for(const [key, value] of Object.entries(validation)){
+      if(value === false){
+          exchangePreconditionsFulfilled = false
+      }
+    }
+    if(exchangePreconditionsFulfilled){
+      return swapExactFraxForTempleWrite;
+    }
+  }
+  function determineButtonValue(){
+    console.log("determine button value: ")
+    const validation: Validation = {
+      isConnected: false,
+      isChainSupported: false,
+      isEnoughAllowance: false,
+      isEnoughStables: false,
+    };
+    if(mounted && !isConnected){
+      validation.isConnected = false;
+      return ActionStatus.CONNECT_WALLET;
+    }
+    if(mounted && !isChainSupported(chain)){
+      validation.isChainSupported = false;
+      return ActionStatus.SWITCH_NETWORK;
+    }
+    if(mounted && !isEnoughAllowance){
+      validation.isEnoughAllowance = false;
+      return ActionStatus.INCREASE_ALLOWANCE;
+    }
+    if(mounted && !isEnoughStables(data?.value.toString() ?? "0", amountWei)){
+      validation.isEnoughStables = false;
+      return ActionStatus.INSSUFICIENT_STABLES
+    }
+    let exchangePreconditionsFulfilled: Boolean = true
+    for(const [key, value] of Object.entries(validation)){
+      if(value === false){
+          exchangePreconditionsFulfilled = false  
+      }
+    }
+    if(exchangePreconditionsFulfilled){
+      return ActionStatus.EXCHANGE;
+    }
+  }
+  
   useEffect(() => {
     function handleWindowResize() {
       setAmountInInputWidth(amountInInputRef.current.clientWidth)
@@ -349,6 +436,7 @@ export default function Exchange({ ...props }) {
       window.removeEventListener('resize', handleWindowResize);
     };
   }, []);
+  
   async function amountHandler(event: any) {
     const amount: any = event.target.value;
     let amountWei;
@@ -364,15 +452,18 @@ export default function Exchange({ ...props }) {
   }
   // experimenting
   return (
+    
     <div className="h-screen bg-black p-6" style={{ backgroundColor }}>
+      {isChainSupported(chain)}
       {/* Header */}
       <div className="grid 2xl:grid-cols-7 xl:grid-cols-7 lg:grid-cols-7 md:grid-cols-7 sm:grid-cols-5">
-        <div className="2xl:col-start-3 col-span-2 2xl:place-self-center xl:col-start-3 col-span-2 xl:place-self-center lg:col-start-3 col-span-3 lg:place-self-center md:col-start-3 col-span-2 md:place-self-center sm:col-start-2 col-span-3 sm:place-self-end xsm: col-start-2 place-self-center"><Image alt="deployment test" className="2xl:ml-0 xl:ml-0 md:ml-0 sm:ml-12" src={agencyLogoSvg}></Image></div>
-        <div className="col-start-7 text-white hover:cursor-pointer xsm:hidden sm:block md:block lg:block xl:block 2xl:block">
-          <h1 className="mb-3.5 mr-1.5 float-left" onClick={openAccountModal}>
-            {mounted ? addressFormated : ""}
+        <div className="2xl:col-start-3 col-span-2 2xl:place-self-center xl:col-start-3 col-span-2 xl:place-self-center lg:col-start-3 col-span-3 lg:place-self-center md:col-start-3 col-span-2 md:place-self-center sm:col-start-2 col-span-3 sm:place-self-end xsm: col-start-2 place-self-center"><Image alt="deployment test" className="2xl:ml-0 xl:ml-0 md:ml-0 sm:ml-20" src={agencyLogoSvg}></Image></div>
+        <div className="col-start-7 text-white hover:cursor-pointer xsm:hidden sm:block md:block lg:block xl:block 2xl:block mt-1.5">
+          <h1 className="mb-3.5 mr-px float-left" onClick={openAccountModal} style={{display: mounted ? isConnected && isChainSupported(chain) ? "block": "none" : "none"}}>
+            {mounted ? addressFormater(address ?? "") : ""}
           </h1>
-          <Image className="w-17 h-17" alt="deployment test" src={dropDownSvg}></Image>
+          <Image className={"mt-2 ml-2"} alt="deployment test" src={accountModalOpenIndicator} onClick={openAccountModal} style={{display: mounted ? isConnected && isChainSupported(chain) ? "block": "none" : "none"}}></Image>
+          {mounted && !isChainSupported(chain) ? <div className="" onClick={openChainModal}>Change network</div> : <div></div>}
         </div>
         <div className="col-start-6 text-white place-self-center sm:place-self-center sm:mb-3.5 xsm:mb-3.5 hover:cursor-pointer xsm:block sm:hidden md:hidden lg:hidden xl:hidden 2xl:hidden"><Image alt="deployment test" className="mb-1" src={userWalletMobileScreenSvg}></Image></div>
       </div>
@@ -482,8 +573,14 @@ export default function Exchange({ ...props }) {
             </div>
             <div className="w-5/6 h-2/6 rounded-2xl border-4 border-black border-solid">
               <button className="w-full text-black bg-white h-full rounded-2xl"
-                onClick={isDisconnected ? openConnectModal : increaseAllowanceOrSwapWrite}>
-                {isDisconnected ? "Connect wallet" : increaseAllowanceOrSwap()}
+                // action
+                onClick= {
+                  determineButtonAction()
+                  // isDisconnected ? openConnectModal : increaseAllowanceOrSwapWrite
+                  }>
+                {/* button description */}
+                  {determineButtonValue()}
+                {/* {isDisconnected ? "Connect wallet" : increaseAllowanceOrSwap()} */}
               </button>
             </div>
           </div>

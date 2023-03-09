@@ -7,6 +7,7 @@ export const MAINNET_ID = 1;
 export const RINKEBY_ID = 4;
 export const GOERLI_ID= 5;
 
+// eslint-disable-next-line import/no-anonymous-default-export
 export default {
   [MAINNET_ID]: {
     exchanges: {

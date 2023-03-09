@@ -1,5 +1,5 @@
 import { BigNumber } from "ethers";
 
-export default function enoughStables(balance: any, desiredAmount: any){
-    return BigNumber.from(balance? balance : 0).gte(BigNumber.from(desiredAmount? desiredAmount: 0));
+export default function isGreaterThanOrEqualTo(amount1: any, amount2: any){
+    return BigNumber.from(amount1? amount1 : 0).gte(BigNumber.from(amount2? amount2: 0));
 }
