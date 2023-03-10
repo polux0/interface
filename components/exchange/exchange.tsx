@@ -150,6 +150,7 @@ export default function Exchange({ ...props }) {
 
   const [amount, setAmount] = useState("0");
   const [amountWei, setAmountWei] = useState("0");
+  const [amountWeiActualButCurentPlaceHolder, setAmountWeiActualButCurentPlaceHolder] = useState("0");
   const [currentAllowanceWei, setCurrentAllowanceWei] = useState("0");
   const [expectedAmount, setExpectedAmount] = useState("0");
   const [transactionStatus, setTransactionStatus] = React.useState<TransationStatus>(TransationStatus.DEFAULT);
@@ -166,6 +167,7 @@ export default function Exchange({ ...props }) {
   try {
     amountWeiNormalized = ethers.utils.parseUnits(amountWei.toString(), "ether").toString();
     amountMinOutWeiValue = BigNumber.from(amountWei).sub(BigNumber.from(amountWei).div(10));
+    console.log("current allowance wei", currentAllowanceWei)
   } catch (error) {
     amountWeiNormalized = "0";
     amountMinOutWeiValue = BigNumber.from("0");
@@ -214,74 +216,27 @@ export default function Exchange({ ...props }) {
   useContractWrite({
     ... increaseAllowanceConfig,
     onSettled(data, error) {
-      console.log("increaseAllowanceError11111111111111111111111111111111111: ", error)
-      if(error){
-        console.log("error: ", error)
-        setTransactionStatus(TransationStatus.ERROR)
-        console.log("transactionStatus: ", transactionStatus)
-      }
-      else{
-        setTransactionStatus(TransationStatus.LOADING)
-      }
-      // error ? setTransactionStatus(TransationStatus.ERROR) : setTransactionStatus(TransationStatus.LOADING)
-      console.log("transactionStatus: ", transactionStatus)
-      if(transactionStatus == TransationStatus.ERROR){
-        console.log("increaseAllowanceError111 TRANSACTION STATUS IS ERROR: ", error)
-        setTimeout(function() { setTransactionStatus(TransationStatus.DEFAULT) }, 5000);
-      }
+      error ? setTransactionStatus(TransationStatus.ERROR) : setTransactionStatus(TransationStatus.LOADING)
     },
   },)
   const { write: swapExactFraxForTempleWrite, data: swapExactFraxForTempleWriteData, error: swapExactFraxForTempleWriteError, isLoading: swapExactFraxForTempleWriteIsLoading, isError: swapExactFraxForTempleWriteIsError, isSuccess: swapExactFraxForTempleWriteIsSuccess } = 
   useContractWrite({
     ...swapExactFraxForTempleConfig,
     onSettled(data, error) {
-      console.log("seedError: ", error)
       error ? setTransactionStatus(TransationStatus.ERROR) : setTransactionStatus(TransationStatus.LOADING)
-      if(transactionStatus == TransationStatus.ERROR){
-        setTimeout(function() { setTransactionStatus(TransationStatus.DEFAULT) }, 5000);
-      }
     },})
 
-  if (increaseAllowanceError) {
-    console.log('Error with `usePrepareContractWriteIncreaseAllowance`: ', increaseAllowanceError)
-  }
-  if (swapExactFraxForTempleWriteError) {
-    console.log('Error with `usePrepareContractWriteswapExactFraxForTempleWrite`: ', swapExactFraxForTempleWriteError)
-  }
-  //
-  const increaseAllowanceOrSwap = function () {
-    // technical debt
-    // question: should we put `currentAllowanceNormalized` && `amountNormalized` as part of state
-    const amountWei = ethers.utils.parseEther(amount).toString()
-    const enoughAllowance = isEnoughAllowance(amountWei, currentAllowanceWei)
-
-    if (enoughAllowance) {
-      if (isGreaterThanOrEqualTo(data?.value.toString(), amountWeiNormalized)) {
-        return "Swap"
-      }
-      else return "Not enough USDC balance"
-    }
-    else return "Increase allowance";
-  }
-
-  function doNothing() {
-    return;
-  }
   function isChainSupported(chain: any){
-    
     return chain && chains ? chains.map(chain => chain.id).includes(chain.id) : false; 
   }
   useWaitForTransaction({
     confirmations: 1,
     hash: increaseAllowanceData?.hash,
     onSettled(data, error) {
-      console.log('Increase allowance settled', { data, error })
       fetchAllowance?.().then(increaseAllowancePromise => {
         const updatedAllowance = increaseAllowancePromise?.data as string
         setCurrentAllowanceWei(updatedAllowance.toString());
-        setTransactionStatus(TransationStatus.SUCCESS)
         error? setTransactionStatus(TransationStatus.ERROR) : setTransactionStatus(TransationStatus.SUCCESS)
-        setTimeout(function() { setTransactionStatus(TransationStatus.DEFAULT) }, 6000);
       })
     },
   });
@@ -289,27 +244,11 @@ export default function Exchange({ ...props }) {
     confirmations: 1,
     hash: swapExactFraxForTempleWriteData?.hash,
     onSettled(data, error) {
-      console.log('Seed settled', { data, error })
       // check for agency balance and increase ?
       error? setTransactionStatus(TransationStatus.ERROR) : setTransactionStatus(TransationStatus.SUCCESS)
-      setTimeout(function() { setTransactionStatus(TransationStatus.DEFAULT) }, 6000);
     },
   });
 
-  const increaseAllowanceOrSwapWrite = function () {
-
-    const result = increaseAllowanceOrSwap()
-    // validation here? Shame...
-    if (result === "Swap") {
-      swapExactFraxForTempleWrite?.()
-    }
-    else if (result === "Increase allowance") {
-      increaseAllowanceWrite?.();
-    }
-    else {
-      doNothing()
-    }
-  }
   useEffect(
     () => {
       if (debouncedInputAmount) {
@@ -317,7 +256,6 @@ export default function Exchange({ ...props }) {
           fetchAllowance?.().then(currentAllowancePromise => {
             const result = currentAllowancePromise?.data as string
             setCurrentAllowanceWei(result.toString());
-            console.log("current allowance, response from a contract: ", result.toString())
           })
           fetchQuote?.().then(quote => {
             const result = quote?.data as any;
@@ -337,9 +275,15 @@ export default function Exchange({ ...props }) {
         setExpectedAmount("0")
       }
     },
-    [amount, chain, debouncedInputAmount, fetchAllowance, fetchQuote, isChainSupported, provider] // Only call effect if debounced search term changes
+    [amount, chain, currentAllowanceWei, debouncedInputAmount, fetchAllowance, fetchQuote, isChainSupported, provider] // Only call effect if debounced search term changes
   );
   
+  // redescribe logic - > 
+  useEffect(() => {
+    if(transactionStatus == TransationStatus.ERROR || transactionStatus == TransationStatus.SUCCESS){
+      setTimeout(function() { setTransactionStatus(TransationStatus.DEFAULT) }, 6000);
+    }
+  }, [TransationStatus.DEFAULT, TransationStatus.ERROR, TransationStatus.SUCCESS, transactionStatus]);
 
   // useLayoutEffect(() => {
   //     console.log("should be initial width: ", amountInInputRef.current.clientWidth )
@@ -351,18 +295,18 @@ export default function Exchange({ ...props }) {
 
   
   function isEnoughAllowance(amount: string, allowance: string){
-    const amountWei = ethers.utils.parseEther(amount).toString()
-    return isGreaterThanOrEqualTo(currentAllowanceWei, amountWei);
+    const amountWei = ethers.utils.parseEther(amount).toString() ?? "0"
+    return isGreaterThanOrEqualTo(allowance, amountWei);
   }
   function isEnoughStables(amount: string, allowance: string){
     return isGreaterThanOrEqualTo(amount, allowance);
   }
   function determineButtonAction(){
     const validation: Validation = {
-      isConnected: false,
-      isChainSupported: false,
-      isEnoughAllowance: false,
-      isEnoughStables: false,
+      isConnected: true,
+      isChainSupported: true,
+      isEnoughStables: true,
+      isEnoughAllowance: true,
     };
     if(!isConnected){
       validation.isConnected = false;
@@ -372,12 +316,12 @@ export default function Exchange({ ...props }) {
       validation.isChainSupported = false;
       return openChainModal;
     }
-    if(!isEnoughAllowance){
+    if(!isEnoughStables(data?.value.toString() ?? "0", amountWeiActualButCurentPlaceHolder)){
+      validation.isEnoughStables = false;
+    }
+    if(!isEnoughAllowance(amount, currentAllowanceWei)){
       validation.isEnoughAllowance = false;
       return increaseAllowanceWrite;
-    }
-    if(!isEnoughStables(data?.value.toString() ?? "0", amountWei)){
-      validation.isEnoughStables = false;
     }
     let exchangePreconditionsFulfilled: Boolean = true
     for(const [key, value] of Object.entries(validation)){
@@ -390,28 +334,31 @@ export default function Exchange({ ...props }) {
     }
   }
   function determineButtonValue(){
-    console.log("determine button value: ")
     const validation: Validation = {
-      isConnected: false,
-      isChainSupported: false,
-      isEnoughAllowance: false,
-      isEnoughStables: false,
+      isConnected: true,
+      isChainSupported: true,
+      isEnoughStables: true,
+      isEnoughAllowance: true,
     };
     if(mounted && !isConnected){
       validation.isConnected = false;
+      // console.log(validation)
       return ActionStatus.CONNECT_WALLET;
     }
     if(mounted && !isChainSupported(chain)){
       validation.isChainSupported = false;
+      // console.log(validation)
       return ActionStatus.SWITCH_NETWORK;
     }
-    if(mounted && !isEnoughAllowance){
-      validation.isEnoughAllowance = false;
-      return ActionStatus.INCREASE_ALLOWANCE;
-    }
-    if(mounted && !isEnoughStables(data?.value.toString() ?? "0", amountWei)){
+    if(mounted && !isEnoughStables(data?.value.toString() ?? "0", amountWeiActualButCurentPlaceHolder)){
       validation.isEnoughStables = false;
+      // console.log('INSSUFICIENT_STABLES', validation)
       return ActionStatus.INSSUFICIENT_STABLES
+    }
+    if(mounted && !isEnoughAllowance(amountWei, currentAllowanceWei)){
+      validation.isEnoughAllowance = false;
+      // console.log(validation)
+      return ActionStatus.INCREASE_ALLOWANCE;
     }
     let exchangePreconditionsFulfilled: Boolean = true
     for(const [key, value] of Object.entries(validation)){
@@ -420,6 +367,7 @@ export default function Exchange({ ...props }) {
       }
     }
     if(exchangePreconditionsFulfilled){
+      // console.log('exchange', validation)
       return ActionStatus.EXCHANGE;
     }
   }
@@ -445,10 +393,9 @@ export default function Exchange({ ...props }) {
     } catch (error) {
       amountWei = "0";
     }
+    setAmount(amount);
+    setAmountWeiActualButCurentPlaceHolder(ethers.utils.parseUnits(amount,"ether").toString())
     setAmountWei(amountWei)
-    // technical debt
-    // should not be here as it violates single responsibillity principle
-    setAmount(amountWei);
   }
   // experimenting
   return (
