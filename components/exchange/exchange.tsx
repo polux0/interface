@@ -132,12 +132,14 @@ export default function Exchange({ ...props }) {
     CONNECT_WALLET = "Connect wallet",
     SWITCH_NETWORK = "Switch network",
     INCREASE_ALLOWANCE = "Increase allowance",
-    INSSUFICIENT_STABLES = "Not enough USDC balance",
-    EXCHANGE = "Swap"
+    INSSUFICIENT_STABLES = "Insufficient USDC balance",
+    EXCHANGE = "Swap",
+    ENTER_AN_AMOUNT = "Enter an amount"
   }
   interface Validation{
     isConnected: boolean,
     isChainSupported: boolean,
+    isAmountEntered: boolean,
     isEnoughAllowance: boolean,
     isEnoughStables: boolean,
   }
@@ -167,7 +169,6 @@ export default function Exchange({ ...props }) {
   try {
     amountWeiNormalized = ethers.utils.parseUnits(amountWei.toString(), "ether").toString();
     amountMinOutWeiValue = BigNumber.from(amountWei).sub(BigNumber.from(amountWei).div(10));
-    console.log("current allowance wei", currentAllowanceWei)
   } catch (error) {
     amountWeiNormalized = "0";
     amountMinOutWeiValue = BigNumber.from("0");
@@ -293,7 +294,9 @@ export default function Exchange({ ...props }) {
   //     setAmountInInputHeight(amountInInputRef.current.clientHeight)
   // }, []);
 
-  
+  function isAmountEntered(){
+    return isGreaterThanOrEqualTo(amount, 0) 
+  }
   function isEnoughAllowance(amount: string, allowance: string){
     const amountWei = ethers.utils.parseEther(amount).toString() ?? "0"
     return isGreaterThanOrEqualTo(allowance, amountWei);
@@ -305,6 +308,7 @@ export default function Exchange({ ...props }) {
     const validation: Validation = {
       isConnected: true,
       isChainSupported: true,
+      isAmountEntered: true,
       isEnoughStables: true,
       isEnoughAllowance: true,
     };
@@ -316,8 +320,13 @@ export default function Exchange({ ...props }) {
       validation.isChainSupported = false;
       return openChainModal;
     }
+    if(!isAmountEntered()){
+      validation.isAmountEntered = false;
+      return;
+    }
     if(!isEnoughStables(data?.value.toString() ?? "0", amountWeiActualButCurentPlaceHolder)){
       validation.isEnoughStables = false;
+      return;
     }
     if(!isEnoughAllowance(amount, currentAllowanceWei)){
       validation.isEnoughAllowance = false;
@@ -337,6 +346,7 @@ export default function Exchange({ ...props }) {
     const validation: Validation = {
       isConnected: true,
       isChainSupported: true,
+      isAmountEntered: true,
       isEnoughStables: true,
       isEnoughAllowance: true,
     };
@@ -349,6 +359,10 @@ export default function Exchange({ ...props }) {
       validation.isChainSupported = false;
       // console.log(validation)
       return ActionStatus.SWITCH_NETWORK;
+    }
+    if(mounted && isAmountEntered()){
+      validation.isAmountEntered = false;
+      return ActionStatus.ENTER_AN_AMOUNT;
     }
     if(mounted && !isEnoughStables(data?.value.toString() ?? "0", amountWeiActualButCurentPlaceHolder)){
       validation.isEnoughStables = false;
