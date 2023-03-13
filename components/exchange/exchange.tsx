@@ -35,7 +35,7 @@ import {
   useChainModal,
 } from '@rainbow-me/rainbowkit';
 import { addressFormater } from '@/helpers/addressFormater';
-import isGreaterThanOrEqualTo from '@/helpers/validation';
+import validation from '@/helpers/validation';
 
 export default function Exchange({ ...props }) {
 
@@ -295,14 +295,14 @@ export default function Exchange({ ...props }) {
   // }, []);
 
   function isAmountEntered(){
-    return isGreaterThanOrEqualTo(amount, 0) 
+    return validation.isGreaterThan(amount, 0) 
   }
   function isEnoughAllowance(amount: string, allowance: string){
     const amountWei = ethers.utils.parseEther(amount).toString() ?? "0"
-    return isGreaterThanOrEqualTo(allowance, amountWei);
+    return validation.isGreaterThanOrEqualTo(allowance, amountWei);
   }
   function isEnoughStables(amount: string, allowance: string){
-    return isGreaterThanOrEqualTo(amount, allowance);
+    return validation.isGreaterThanOrEqualTo(amount, allowance);
   }
   function determineButtonAction(){
     const validation: Validation = {
@@ -360,7 +360,7 @@ export default function Exchange({ ...props }) {
       // console.log(validation)
       return ActionStatus.SWITCH_NETWORK;
     }
-    if(mounted && isAmountEntered()){
+    if(mounted && !isAmountEntered()){
       validation.isAmountEntered = false;
       return ActionStatus.ENTER_AN_AMOUNT;
     }
