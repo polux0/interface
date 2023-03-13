@@ -424,7 +424,7 @@ export default function Exchange({ ...props }) {
             {mounted ? addressFormater(address ?? "") : ""}
           </h1>
           <Image className={"mt-2 ml-2"} alt="deployment test" src={accountModalOpenIndicator} onClick={openAccountModal} style={{display: mounted ? isConnected && isChainSupported(chain) ? "block": "none" : "none"}}></Image>
-          {mounted && !isChainSupported(chain) ? <div className="" onClick={openChainModal}>Change network</div> : <div></div>}
+          {mounted && !isChainSupported(chain) ? <div className="" onClick={openChainModal}>Switch network</div> : <div></div>}
         </div>
         <div className="col-start-6 text-white place-self-center sm:place-self-center sm:mb-3.5 xsm:mb-3.5 hover:cursor-pointer xsm:block sm:hidden md:hidden lg:hidden xl:hidden 2xl:hidden"><Image alt="deployment test" className="mb-1" src={userWalletMobileScreenSvg}></Image></div>
       </div>
