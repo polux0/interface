@@ -35,7 +35,8 @@ import {
   useChainModal,
 } from '@rainbow-me/rainbowkit';
 import { addressFormater } from '@/helpers/addressFormater';
-import validation from '@/helpers/validation';
+// technical debt
+import validationz from '@/helpers/validation';
 
 export default function Exchange({ ...props }) {
 
@@ -294,16 +295,6 @@ export default function Exchange({ ...props }) {
   //     setAmountInInputHeight(amountInInputRef.current.clientHeight)
   // }, []);
 
-  function isAmountEntered(){
-    return validation.isGreaterThan(amount, 0) 
-  }
-  function isEnoughAllowance(amount: string, allowance: string){
-    const amountWei = ethers.utils.parseEther(amount).toString() ?? "0"
-    return validation.isGreaterThanOrEqualTo(allowance, amountWei);
-  }
-  function isEnoughStables(amount: string, allowance: string){
-    return validation.isGreaterThanOrEqualTo(amount, allowance);
-  }
   function determineButtonAction(){
     const validation: Validation = {
       isConnected: true,
@@ -320,15 +311,15 @@ export default function Exchange({ ...props }) {
       validation.isChainSupported = false;
       return openChainModal;
     }
-    if(!isAmountEntered()){
+    if(!validationz.isAmountEntered(amount)){
       validation.isAmountEntered = false;
       return;
     }
-    if(!isEnoughStables(data?.value.toString() ?? "0", amountWeiActualButCurentPlaceHolder)){
+    if(!validationz.isEnoughStables(data?.value.toString() ?? "0", amountWeiActualButCurentPlaceHolder)){
       validation.isEnoughStables = false;
       return;
     }
-    if(!isEnoughAllowance(amount, currentAllowanceWei)){
+    if(!validationz.isEnoughAllowance(amount, currentAllowanceWei)){
       validation.isEnoughAllowance = false;
       return increaseAllowanceWrite;
     }
@@ -360,16 +351,16 @@ export default function Exchange({ ...props }) {
       // console.log(validation)
       return ActionStatus.SWITCH_NETWORK;
     }
-    if(mounted && !isAmountEntered()){
+    if(mounted && !validationz.isAmountEntered(amount)){
       validation.isAmountEntered = false;
       return ActionStatus.ENTER_AN_AMOUNT;
     }
-    if(mounted && !isEnoughStables(data?.value.toString() ?? "0", amountWeiActualButCurentPlaceHolder)){
+    if(mounted && !validationz.isEnoughStables(data?.value.toString() ?? "0", amountWeiActualButCurentPlaceHolder)){
       validation.isEnoughStables = false;
       // console.log('INSSUFICIENT_STABLES', validation)
       return ActionStatus.INSSUFICIENT_STABLES
     }
-    if(mounted && !isEnoughAllowance(amountWei, currentAllowanceWei)){
+    if(mounted && !validationz.isEnoughAllowance(amountWei, currentAllowanceWei)){
       validation.isEnoughAllowance = false;
       // console.log(validation)
       return ActionStatus.INCREASE_ALLOWANCE;
