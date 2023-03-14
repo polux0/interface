@@ -67,10 +67,6 @@ export default function Exchange({ ...props }) {
   const color = "white";
   const backgroundColor1 = "yellow";
 
-  // const alignWithExchangeModal: ( screenWidth - exchangeModalWidth) / 2 = 375.5
-  // const differenceBetweenExchangeModalAndLogoWidth:  ExchangeModalWidth - logoWidth = 572 - 289 = 283 / 2 ( to be centered ) = 141.5
-  // const FinalMargin: alignWithExchangeModal+differenceBetweenExchangeModalAndLogoWidth
-
   const amountInInputRef: any = useRef();
   // technial debt? this could be componentized
   // currencies dropdown
@@ -137,6 +133,13 @@ export default function Exchange({ ...props }) {
     EXCHANGE = "Swap",
     ENTER_AN_AMOUNT = "Enter an amount"
   }
+
+  enum AccountActionStatus {
+    CONNECT_WALLET = "Connect wallet",
+    SWITCH_NETWORK = "Switch network",
+  }
+
+
   interface Validation{
     isConnected: boolean,
     isChainSupported: boolean,
@@ -231,6 +234,9 @@ export default function Exchange({ ...props }) {
   function isChainSupported(chain: any){
     return chain && chains ? chains.map(chain => chain.id).includes(chain.id) : false; 
   }
+  function isConnectedAndIsChainSupported(chain: any){
+    return isConnected && isChainSupported(chain);
+  }
   useWaitForTransaction({
     confirmations: 1,
     hash: increaseAllowanceData?.hash,
@@ -295,6 +301,9 @@ export default function Exchange({ ...props }) {
   //     setAmountInInputHeight(amountInInputRef.current.clientHeight)
   // }, []);
 
+  // tehnical debt
+  // determineButtonAction() && determineButtonValue() could be merged into one function using Map<T,T>
+  // isMounted is everywhere, so it should be merged
   function determineButtonAction(){
     const validation: Validation = {
       isConnected: true,
@@ -376,7 +385,39 @@ export default function Exchange({ ...props }) {
       return ActionStatus.EXCHANGE;
     }
   }
-  
+  // technical debt - make base Validation interface
+  interface AccountValidation{
+    isConnected: boolean,
+    isChainSupported: boolean,
+  }
+  function determineAccountValue(){
+   const validation: AccountValidation = {
+    isConnected: true, 
+    isChainSupported: true,
+   }
+   if(mounted && !isConnected){
+    validation.isConnected = false;
+    return ActionStatus.CONNECT_WALLET;
+  }
+  if(mounted && !isChainSupported(chain)){
+    validation.isChainSupported = false;
+    return ActionStatus.SWITCH_NETWORK;
+  }
+  if(mounted && isConnectedAndIsChainSupported(chain)){
+    return mounted ? addressFormater(address ?? "") : ""
+  }
+  }
+  function determineAccountAction(){
+    if(mounted && !isConnected){
+      return openConnectModal;
+    }
+    if(mounted && !isChainSupported(chain)){
+      return openChainModal;
+    }
+    if(mounted && isConnectedAndIsChainSupported(chain)){
+      return openAccountModal;
+    }
+  }
   useEffect(() => {
     function handleWindowResize() {
       setAmountInInputWidth(amountInInputRef.current.clientWidth)
@@ -410,13 +451,14 @@ export default function Exchange({ ...props }) {
       {/* Header */}
       <div className="grid 2xl:grid-cols-7 xl:grid-cols-7 lg:grid-cols-7 md:grid-cols-7 sm:grid-cols-5">
         <div className="2xl:col-start-3 col-span-2 2xl:place-self-center xl:col-start-3 col-span-2 xl:place-self-center lg:col-start-3 col-span-3 lg:place-self-center md:col-start-3 col-span-2 md:place-self-center sm:col-start-2 col-span-3 sm:place-self-end xsm: col-start-2 place-self-center"><Image alt="deployment test" className="2xl:ml-0 xl:ml-0 md:ml-0 sm:ml-20" src={agencyLogoSvg}></Image></div>
-        <div className="col-start-7 text-white hover:cursor-pointer xsm:hidden sm:block md:block lg:block xl:block 2xl:block mt-1.5">
-          <h1 className="mb-3.5 mr-px float-left" onClick={openAccountModal} style={{display: mounted ? isConnected && isChainSupported(chain) ? "block": "none" : "none"}}>
-            {mounted ? addressFormater(address ?? "") : ""}
+        {/* Account indicator */}
+        <div className="col-start-7 text-white hover:cursor-pointer xsm:hidden sm:block md:block lg:block xl:block 2xl:block mt-1.5" onClick={determineAccountAction()}>
+          <h1 className="mb-3.5 mr-px float-left" style={{display: mounted ? "block": "none"}}>
+            {determineAccountValue()}
           </h1>
-          <Image className={"mt-2 ml-2"} alt="deployment test" src={accountModalOpenIndicator} onClick={openAccountModal} style={{display: mounted ? isConnected && isChainSupported(chain) ? "block": "none" : "none"}}></Image>
-          {mounted && !isChainSupported(chain) ? <div className="" onClick={openChainModal}>Switch network</div> : <div></div>}
+          <Image className={"mt-2 ml-2"} alt="deployment test" src={accountModalOpenIndicator}></Image>
         </div>
+        {/* Account indicator */}
         <div className="col-start-6 text-white place-self-center sm:place-self-center sm:mb-3.5 xsm:mb-3.5 hover:cursor-pointer xsm:block sm:hidden md:hidden lg:hidden xl:hidden 2xl:hidden"><Image alt="deployment test" className="mb-1" src={userWalletMobileScreenSvg}></Image></div>
       </div>
       <div className="flex flex-row w-full min-h-3/4 lg:mt-36 justify-center items-center md:mt-36 sm:mt-36 xsm:mt-1">
@@ -525,14 +567,10 @@ export default function Exchange({ ...props }) {
             </div>
             <div className="w-5/6 h-2/6 rounded-2xl border-4 border-black border-solid">
               <button className="w-full text-black bg-white h-full rounded-2xl"
-                // action
                 onClick= {
                   determineButtonAction()
-                  // isDisconnected ? openConnectModal : increaseAllowanceOrSwapWrite
                   }>
-                {/* button description */}
                   {determineButtonValue()}
-                {/* {isDisconnected ? "Connect wallet" : increaseAllowanceOrSwap()} */}
               </button>
             </div>
           </div>
