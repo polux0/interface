@@ -286,20 +286,21 @@ export default function Exchange({ ...props }) {
     [amount, chain, currentAllowanceWei, debouncedInputAmount, fetchAllowance, fetchQuote, isChainSupported, provider] // Only call effect if debounced search term changes
   );
   
-  // redescribe logic - > 
+  // technical debt
+  // move this into /hooks
   useEffect(() => {
     if(transactionStatus == TransationStatus.ERROR || transactionStatus == TransationStatus.SUCCESS){
       setTimeout(function() { setTransactionStatus(TransationStatus.DEFAULT) }, 6000);
     }
   }, [TransationStatus.DEFAULT, TransationStatus.ERROR, TransationStatus.SUCCESS, transactionStatus]);
 
-  // useLayoutEffect(() => {
-  //     console.log("should be initial width: ", amountInInputRef.current.clientWidth )
-  //     console.log("should be initial height: ", amountInInputRef.current.clientHeight )
+  // technical debt
+  // move this into /hooks
 
-  //     setAmountInInputWidth(amountInInputRef.current.clientWidth)
-  //     setAmountInInputHeight(amountInInputRef.current.clientHeight)
-  // }, []);
+  useLayoutEffect(() => {
+      setAmountInInputWidth(amountInInputRef.current.clientWidth)
+      setAmountInInputHeight(amountInInputRef.current.clientHeight)
+  }, []);
 
   // tehnical debt
   // determineButtonAction() && determineButtonValue() could be merged into one function using Map<T,T>
@@ -418,18 +419,6 @@ export default function Exchange({ ...props }) {
       return openAccountModal;
     }
   }
-  useEffect(() => {
-    function handleWindowResize() {
-      setAmountInInputWidth(amountInInputRef.current.clientWidth)
-      setAmountInInputHeight(amountInInputRef.current.clientHeight)
-    }
-
-    window.addEventListener('resize', handleWindowResize);
-
-    return () => {
-      window.removeEventListener('resize', handleWindowResize);
-    };
-  }, []);
   
   async function amountHandler(event: any) {
     const amount: any = event.target.value;
