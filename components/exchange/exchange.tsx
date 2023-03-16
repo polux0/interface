@@ -1,15 +1,16 @@
-import React from "react";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import React, { useLayoutEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ethers } from 'ethers';
 import { Chain, useAccount, useBalance, useContractRead, useContractWrite, usePrepareContractWrite, useProvider, useWaitForTransaction } from 'wagmi'
 import { useAddRecentTransaction } from '@rainbow-me/rainbowkit';
 import { agencyStableAbi, agencyTreasurySeedAbi } from '../../contracts/abis'
 import useDebounce from '../../hooks/Debounce';
+import useIsomorphicLayoutEffect from "@/hooks/IsomporphicLayoutEffect";
 import { BigNumber } from 'ethers';
 import Image from 'next/image';
 
 import { useNetwork } from 'wagmi'
-
+import { addresses, GOERLI_ID } from "../../contracts"
 
 // technical debt - create separate module
 import settingsSvg from "../../public/noun-settings-pixel-art-2758641.svg";
@@ -216,21 +217,23 @@ export default function Exchange({ ...props }) {
     // not sure if necessary
     overrides: { gasLimit: BigNumber.from(600000) }
   })
+
   // config of contractWrite 
-  const { write: increaseAllowanceWrite, data: increaseAllowanceData, error: increaseAllowanceError, isLoading: increaseAllowanceIsLoading, isError: increaseAllowanceIsError, isSuccess: increaseAllowanceIsSuccess } = 
+  const { write: increaseAllowanceWrite, data: increaseAllowanceData } = 
   useContractWrite({
     ... increaseAllowanceConfig,
     onSettled(data, error) {
       error ? setTransactionStatus(TransationStatus.ERROR) : setTransactionStatus(TransationStatus.LOADING)
     },
   },)
-  const { write: swapExactFraxForTempleWrite, data: swapExactFraxForTempleWriteData, error: swapExactFraxForTempleWriteError, isLoading: swapExactFraxForTempleWriteIsLoading, isError: swapExactFraxForTempleWriteIsError, isSuccess: swapExactFraxForTempleWriteIsSuccess } = 
+  const { write: swapExactFraxForTempleWrite, data: swapExactFraxForTempleWriteData } = 
   useContractWrite({
     ...swapExactFraxForTempleConfig,
     onSettled(data, error) {
       error ? setTransactionStatus(TransationStatus.ERROR) : setTransactionStatus(TransationStatus.LOADING)
     },})
 
+  // technical debt - optimize only to be used when chain is changed
   function isChainSupported(chain: any){
     return chain && chains ? chains.map(chain => chain.id).includes(chain.id) : false; 
   }
@@ -257,6 +260,8 @@ export default function Exchange({ ...props }) {
     },
   });
 
+  // technical debt
+  // move this into /hooks
   useEffect(
     () => {
       if (debouncedInputAmount) {
@@ -298,6 +303,7 @@ export default function Exchange({ ...props }) {
   // move this into /hooks
 
   useLayoutEffect(() => {
+      console.log("addresses: ", addresses[1337])
       setAmountInInputWidth(amountInInputRef.current.clientWidth)
       setAmountInInputHeight(amountInInputRef.current.clientHeight)
   }, []);
@@ -436,7 +442,6 @@ export default function Exchange({ ...props }) {
   return (
     
     <div className="h-screen bg-black p-6" style={{ backgroundColor }}>
-      {isChainSupported(chain)}
       {/* Header */}
       <div className="grid 2xl:grid-cols-7 xl:grid-cols-7 lg:grid-cols-7 md:grid-cols-7 sm:grid-cols-5">
         <div className="2xl:col-start-3 col-span-2 2xl:place-self-center xl:col-start-3 col-span-2 xl:place-self-center lg:col-start-3 col-span-3 lg:place-self-center md:col-start-3 col-span-2 md:place-self-center sm:col-start-2 col-span-3 sm:place-self-end xsm: col-start-2 place-self-center"><Image alt="deployment test" className="2xl:ml-0 xl:ml-0 md:ml-0 sm:ml-20" src={agencyLogoSvg}></Image></div>

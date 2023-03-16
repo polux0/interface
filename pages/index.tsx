@@ -18,9 +18,6 @@ export default function Home() {
         <meta name="description" content="Agency" />  
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
-        {/* Jesse */}
-        {/* <main className={styles.main}> */}
-        {/* <div className={styles.description}>description</div> */}
       </Head>
       <div className="wrapper">
       <Exchange walletConnected = {true}></Exchange>
