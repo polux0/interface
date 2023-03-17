@@ -38,6 +38,10 @@ import {
 import { addressFormater } from '@/helpers/addressFormater';
 // technical debt
 import validationz from '@/helpers/validation';
+import Account from "../shared/account";
+import Logo from "../shared/header/logo";
+import AccountMobile from "../shared/header/accountMobile";
+import Header from "../shared/header/header";
 
 export default function Exchange({ ...props }) {
 
@@ -443,18 +447,13 @@ export default function Exchange({ ...props }) {
     
     <div className="h-screen bg-black p-6" style={{ backgroundColor }}>
       {/* Header */}
-      <div className="grid 2xl:grid-cols-7 xl:grid-cols-7 lg:grid-cols-7 md:grid-cols-7 sm:grid-cols-5">
-        <div className="2xl:col-start-3 col-span-2 2xl:place-self-center xl:col-start-3 col-span-2 xl:place-self-center lg:col-start-3 col-span-3 lg:place-self-center md:col-start-3 col-span-2 md:place-self-center sm:col-start-2 col-span-3 sm:place-self-end xsm: col-start-2 place-self-center"><Image alt="deployment test" className="2xl:ml-0 xl:ml-0 md:ml-0 sm:ml-20" src={agencyLogoSvg}></Image></div>
-        {/* Account indicator */}
-        <div className="col-start-7 text-white hover:cursor-pointer xsm:hidden sm:block md:block lg:block xl:block 2xl:block mt-1.5" onClick={determineAccountAction()}>
-          <h1 className="mb-3.5 mr-px float-left" style={{display: mounted ? "block": "none"}}>
-            {determineAccountValue()}
-          </h1>
-          <Image className={"mt-2 ml-2"} alt="deployment test" src={accountModalOpenIndicator}></Image>
-        </div>
-        {/* Account indicator */}
-        <div className="col-start-6 text-white place-self-center sm:place-self-center sm:mb-3.5 xsm:mb-3.5 hover:cursor-pointer xsm:block sm:hidden md:hidden lg:hidden xl:hidden 2xl:hidden"><Image alt="deployment test" className="mb-1" src={userWalletMobileScreenSvg}></Image></div>
-      </div>
+      <Header agencyLogoSvg = {agencyLogoSvg} 
+              determineAccountAction = {determineAccountAction}
+              mounted = {mounted}
+              determineAccountValue = {determineAccountValue}
+              accountModalOpenIndicator = {accountModalOpenIndicator}
+              userWalletMobileScreen = {userWalletMobileScreenSvg}
+      />
       <div className="flex flex-row w-full min-h-3/4 lg:mt-36 justify-center items-center md:mt-36 sm:mt-36 xsm:mt-1">
         {/* //Roadmap */}
         <div className="float-left w-4/12 xsm:hidden 2xl:block xl:block lg:block md:block sm:block">
