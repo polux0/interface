@@ -42,6 +42,10 @@ import Account from "../shared/account";
 import Logo from "../shared/header/logo";
 import AccountMobile from "../shared/header/accountMobile";
 import Header from "../shared/header/header";
+import Roadmap from "../shared/roadmap/roadmap";
+import Stats from "../shared/Stats";
+import RoadmapAndStatsMobile from "../shared/RodmapAndStatsMobile";
+import ExchangeButton from "./exchangebutton";
 
 export default function Exchange({ ...props }) {
 
@@ -307,7 +311,7 @@ export default function Exchange({ ...props }) {
   // move this into /hooks
 
   useLayoutEffect(() => {
-      console.log("addresses: ", addresses[1337])
+      // console.log("addresses: ", addresses[chain?.id])
       setAmountInInputWidth(amountInInputRef.current.clientWidth)
       setAmountInInputHeight(amountInInputRef.current.clientHeight)
   }, []);
@@ -456,10 +460,11 @@ export default function Exchange({ ...props }) {
       />
       <div className="flex flex-row w-full min-h-3/4 lg:mt-36 justify-center items-center md:mt-36 sm:mt-36 xsm:mt-1">
         {/* //Roadmap */}
-        <div className="float-left w-4/12 xsm:hidden 2xl:block xl:block lg:block md:block sm:block">
-          <button><Image src={roadmapSvg} alt="deployment test" style={imageStyle}></Image></button>
-        </div>
+        <Roadmap roadmapSvg = {roadmapSvg}
+                 style = {imageStyle}/>
+        {/* Exchange Container */}
         <div className="h-max 2xl:w-4/12 xl:w-5/12 lg:w-6/12 bg-white rounded-3xl p-6" style={exchangeContainerHeight}>
+          {/* Settings Button*/}
           <div className="w-full h-1/6">
             <button className="float-right" onClick={() => {
               settingsDropdownPopoverShow
@@ -467,6 +472,7 @@ export default function Exchange({ ...props }) {
                 : openSettingsDropdownPopover();
             }}><Image alt="deployment test" src={settingsSvg}></Image></button>
           </div>
+          {/* Settings Button*/}
           {/* Swap */}
           <div className="flex flex-col justify-center items-center space-y-2 h-2/3">
             <div className="flex justify-center items-center w-5/6 h-2/6 rounded-2xl" ref={amountInInputRef} style={{ backgroundColor }}>
@@ -558,31 +564,20 @@ export default function Exchange({ ...props }) {
                 </div>
               </div>
             </div>
-            <div className="w-5/6 h-2/6 rounded-2xl border-4 border-black border-solid">
-              <button className="w-full text-black bg-white h-full rounded-2xl"
-                onClick= {
-                  determineButtonAction()
-                  }>
-                  {determineButtonValue()}
-              </button>
-            </div>
+            {/* Exchange button */}
+            <ExchangeButton determineButtonAction = {determineButtonAction}
+                            determineButtonValue = {determineButtonValue} />
+            {/* Exchange button */}
           </div>
         </div>
         {/* Stats */}
-        <div className="w-4/12 float-right hover:cursor-pointer xsm:hidden sm:block md:block lg:block xl:block 2xl:block">
-          <Image alt="deployment test" className="float-right" src={statsSvg}></Image>
-        </div>
+        <Stats statsSvg={statsSvg}/>
       </div>
       {/* Roadmap & Stats as a footer ( mobile ) */}
-      <div className="w-full h-1/7 mt-3 2xl:hidden xl:hidden lg:hidden md:hidden sm:hidden">
-        <div className="w-4/12 float-right hover:cursor-pointer">
-          <Image alt="deployment test" className="" src={statsSvg} style={imageStyle}></Image>
-        </div>
-        <div className="w-4/12 float-left hover:cursor-pointer">
-          <Image alt="deployment test" className="" src={roadmapSvg}></Image>
-        </div>
-        {/* Roadmap & Stats as a footer ( mobile ) */}
-      </div>
+      <RoadmapAndStatsMobile statsSvg={statsSvg}
+                             imageStyle={imageStyle}
+                             roadmapSvg = {roadmapSvg}/>
+      {/* Roadmap & Stats as a footer ( mobile ) */}
     </div>
   )
 }
