@@ -46,6 +46,10 @@ import Roadmap from "../shared/roadmap/roadmap";
 import Stats from "../shared/Stats";
 import RoadmapAndStatsMobile from "../shared/RodmapAndStatsMobile";
 import ExchangeButton from "./exchangebutton";
+import SettingsButton from "../SettingsButton";
+import SettingsPopover from "../SettingsPopover";
+import CurrenciesButton from "../CurrenciesButton";
+import InformationIndicator from "../shared/indicators/InformationIndicator";
 
 export default function Exchange({ ...props }) {
 
@@ -465,49 +469,42 @@ export default function Exchange({ ...props }) {
         {/* Exchange Container */}
         <div className="h-max 2xl:w-4/12 xl:w-5/12 lg:w-6/12 bg-white rounded-3xl p-6" style={exchangeContainerHeight}>
           {/* Settings Button*/}
-          <div className="w-full h-1/6">
-            <button className="float-right" onClick={() => {
-              settingsDropdownPopoverShow
-                ? closeSettingsDropdownPopover()
-                : openSettingsDropdownPopover();
-            }}><Image alt="deployment test" src={settingsSvg}></Image></button>
-          </div>
+          <SettingsButton settingsSvg={settingsSvg}
+                          settingsButtonDropdownPopoverShow = {settingsButtonDropdownPopoverShow}
+                          settingsPopoverDropdownRef = {settingsPopoverDropdownRef}
+                          openSettingsDropdownPopover = {openSettingsDropdownPopover}
+                          closeSettingsDropdownPopover = {closeSettingsDropdownPopover} />
           {/* Settings Button*/}
           {/* Swap */}
           <div className="flex flex-col justify-center items-center space-y-2 h-2/3">
             <div className="flex justify-center items-center w-5/6 h-2/6 rounded-2xl" ref={amountInInputRef} style={{ backgroundColor }}>
               <input className="w-2/3 h-2/3 text-4xl text-white p-4 focus:outline-0" style={{ backgroundColor }} type="number" min="0" value={amount} onChange={e => amountHandler(e)}></input>
               <button className="w-1/6 h-1/2"><Image alt="deployment test" className="float-right" src={usdcSvg}></Image></button>
-              <button className="w-1/6 h-1/2" onClick={() => {
-                currenciesDropdownPopoverShow
-                  ? closeCurrenciesDropdownPopover()
-                  : openCurrenciesDropdownPopover();
-              }}
-              ><Image alt="deployment test" src={dropDownSvg} style={imageStyle}></Image></button>
+              {/* Currencies dropdown button */}
+              <CurrenciesButton currenciesDropdownPopoverShow = {currenciesDropdownPopoverShow}
+                                closeCurrenciesDropdownPopover = {closeCurrenciesDropdownPopover}
+                                openCurrenciesDropdownPopover = {openCurrenciesDropdownPopover}
+                                dropDownSvg = {dropDownSvg}
+                                imageStyle = {imageStyle} />
+              {/* Currencies dropdown button */}
               {/* Settings dropdown */}
-              <div id="dropdown" ref={settingsPopoverDropdownRef} className={(settingsDropdownPopoverShow ? "block " : "hidden ") + (color === "white" ? "bg-white " : backgroundColor1 + " ") +
-                "absolute text-base z-10 float-right w-1/6 h-2/6 py-2 list-none text-center rounded-2xl border-4 border-black border-solid shadow-lg p-5 mt-40"
-              } style={{minWidth: '250px', marginLeft: Math.max(amountInInputWidth - 250, 0)}}>
-                <h3 className='text-black xsm:mb-1'>Slippage tolerance</h3>
-                <div className="flex flex-col h-4/5 py-2 text-sm dark:text-gray-400">
-                  <div className="flex justify-center items-center text-center w-6/6 h-1/3 bg-white">
-                    <button className="w-1/4 h-full rounded-2xl border-2 border-gray mr-1">
-                      Auto
-                    </button>
-                    <input className="w-3/4 text-2xl text-white text-center p-4 rounded-2xl focus:outline-0" value={"0,5 %"} style={{ backgroundColor }} onChange={e => { }}></input>
-                  </div>
-                  <div className="w-6/6 h-full p-2 bg-white xsm:mt-2.5">
-                    <div className="w-4/4 text-1xl">
-                      Your transaction will revert if the price changes unfavorably by more than this percentage during your order.
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <SettingsPopover settingsPopoverDropdownRef = {settingsPopoverDropdownRef}
+                               settingsDropdownPopoverShow = {settingsDropdownPopoverShow}
+                               color = {color}
+                               backgroundColor = {backgroundColor}
+                               backgroundColor1 = {backgroundColor1}
+                               amountInInputWidth = {amountInInputWidth} />
+
               {/* Settings dropdown */}
             </div>
             <div className="flex justify-center items-center w-5/6 h-2/6 rounded-2xl" style={{ backgroundColor }}>
               <input className="w-2/3 h-2/3 text-4xl text-white p-4 focus:outline-0" style={{ backgroundColor }} defaultValue={expectedAmount} type="number" min="0" onChange={e => { }}></input>
               <button className="w-1/6 h-1/2"><Image alt="deployment test" className="float-right" src={usdcSvg}></Image></button>
+              {/* TradeInfoButton */}
+              <TradeInfoButton additionalTradeInfoDropdownPopoverShow = {additionalTradeInfoDropdownPopoverShow}
+                               closeAdditionalTradeInfoDropdownPopover = {closeAdditionalTradeInfoDropdownPopover}
+                               openAdditionalTradeInfoDropdownPopover = {openAdditionalTradeInfoDropdownPopover} />
+              
               <button className="w-1/6 h-1/9" onClick={() => {
                 additionalTradeInfoDropdownPopoverShow
                   ? closeAdditionalTradeInfoDropdownPopover()
@@ -515,14 +512,20 @@ export default function Exchange({ ...props }) {
                   
               }}>
                 {/* information indicator */}
+                <InformationIndicator informationIndicatorWhite = {informationIndicatorWhite}
+                                      transactionStatus = {transactionStatus}/>
+                
                 <Image className="hidden" alt="deployment test" src={informationIndicatorWhite} style={{display: transactionStatus === TransationStatus.DEFAULT ? "block" : "none", marginLeft: "auto", marginRight: "auto"}}></Image>
                 {/* loading indicator */}
                 <span className="loader float-left 2xl:ml-4	xl:ml-4 lg:ml-3.5 md:ml-2.5 sm:ml-2 xsm:ml-0.5 h-9 w-9" style={{display: transactionStatus === TransationStatus.LOADING ? "block" : "none"}}></span>
+              
                 {/* success indicator */}
                 <Image className="success" alt="deployment test" src={successIndicator} style={{display: transactionStatus === TransationStatus.SUCCESS ? "block" : "none", marginLeft: "auto", marginRight: "auto"}}></Image>
                 {/* error indicator */}
                 <Image className="error" alt="deployment test" src={errorIndicator} style={{display: transactionStatus === TransationStatus.ERROR ? "block" : "none", marginLeft: "auto", marginRight: "auto"}}></Image>
               </button>
+              {/* TradeInfoButton */}
+
               {/* Currencies dropdown */}
               <div id="dropdown" ref={currenciesPopoverDropdownRef} className={(currenciesDropdownPopoverShow ? "block " : "hidden ") + (color === "white" ? "bg-white " : backgroundColor1 + " ") +
                 "absolute text-base z-10 float-right w-1/6 py-2 list-none text-center rounded-2xl border-4 border-black border-solid shadow-lg mt-40"
