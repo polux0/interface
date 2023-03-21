@@ -50,6 +50,12 @@ import SettingsButton from "../SettingsButton";
 import SettingsPopover from "../SettingsPopover";
 import CurrenciesButton from "../CurrenciesButton";
 import InformationIndicator from "../shared/indicators/InformationIndicator";
+import TradeInfoButton from "../TradeInfoButton";
+import LoadingIndicator from "../shared/indicators/LoadingIndicator";
+import SuccessIndicator from "../shared/indicators/SuccessIndicator";
+import ErrorIndicator from "../shared/indicators/ErrorIndicator";
+import CurrenciesPopover from "../CurrenciesPopover";
+import AdditionalTradeInformationPopover from "../AdditionalTradeInformationPopover";
 
 export default function Exchange({ ...props }) {
 
@@ -501,9 +507,10 @@ export default function Exchange({ ...props }) {
               <input className="w-2/3 h-2/3 text-4xl text-white p-4 focus:outline-0" style={{ backgroundColor }} defaultValue={expectedAmount} type="number" min="0" onChange={e => { }}></input>
               <button className="w-1/6 h-1/2"><Image alt="deployment test" className="float-right" src={usdcSvg}></Image></button>
               {/* TradeInfoButton */}
-              <TradeInfoButton additionalTradeInfoDropdownPopoverShow = {additionalTradeInfoDropdownPopoverShow}
+
+              {/* <TradeInfoButton additionalTradeInfoDropdownPopoverShow = {additionalTradeInfoDropdownPopoverShow}
                                closeAdditionalTradeInfoDropdownPopover = {closeAdditionalTradeInfoDropdownPopover}
-                               openAdditionalTradeInfoDropdownPopover = {openAdditionalTradeInfoDropdownPopover} />
+                               openAdditionalTradeInfoDropdownPopover = {openAdditionalTradeInfoDropdownPopover} /> */}
               
               <button className="w-1/6 h-1/9" onClick={() => {
                 additionalTradeInfoDropdownPopoverShow
@@ -513,59 +520,37 @@ export default function Exchange({ ...props }) {
               }}>
                 {/* information indicator */}
                 <InformationIndicator informationIndicatorWhite = {informationIndicatorWhite}
-                                      transactionStatus = {transactionStatus}/>
+                                      transactionStatus = {transactionStatus}
+                                      transactionStatusDefault = {TransationStatus.DEFAULT}/>
                 
-                <Image className="hidden" alt="deployment test" src={informationIndicatorWhite} style={{display: transactionStatus === TransationStatus.DEFAULT ? "block" : "none", marginLeft: "auto", marginRight: "auto"}}></Image>
                 {/* loading indicator */}
-                <span className="loader float-left 2xl:ml-4	xl:ml-4 lg:ml-3.5 md:ml-2.5 sm:ml-2 xsm:ml-0.5 h-9 w-9" style={{display: transactionStatus === TransationStatus.LOADING ? "block" : "none"}}></span>
-              
+                <LoadingIndicator transactionStatus = {transactionStatus} 
+                                  transactionStatusLoading = {TransationStatus.LOADING}/>
                 {/* success indicator */}
-                <Image className="success" alt="deployment test" src={successIndicator} style={{display: transactionStatus === TransationStatus.SUCCESS ? "block" : "none", marginLeft: "auto", marginRight: "auto"}}></Image>
+                <SuccessIndicator successIndicator = {successIndicator}
+                                  transactionStatus = {transactionStatus}
+                                  transactionStatusSuccess = {TransationStatus.SUCCESS}/>
                 {/* error indicator */}
-                <Image className="error" alt="deployment test" src={errorIndicator} style={{display: transactionStatus === TransationStatus.ERROR ? "block" : "none", marginLeft: "auto", marginRight: "auto"}}></Image>
+                <ErrorIndicator errorIndicator = {errorIndicator} 
+                                transactionStatus = {transactionStatus}
+                                tranasctionStatusError = {TransationStatus.ERROR}/>
               </button>
               {/* TradeInfoButton */}
 
               {/* Currencies dropdown */}
-              <div id="dropdown" ref={currenciesPopoverDropdownRef} className={(currenciesDropdownPopoverShow ? "block " : "hidden ") + (color === "white" ? "bg-white " : backgroundColor1 + " ") +
-                "absolute text-base z-10 float-right w-1/6 py-2 list-none text-center rounded-2xl border-4 border-black border-solid shadow-lg mt-40"
-              } style={{minWidth: '250px', marginLeft: Math.max(amountInInputWidth - 250, 0)}}>
-                <h3 className='text-black'>Choose token ( soon )</h3>
-                <div className="flex flex-col py-2 text-sm dark:text-gray-400 p-5">
-                  <div onClick={() => {  closeCurrenciesDropdownPopover() }} className="flex justify-center items-center w-6/6 h-1/9 p-2 rounded-2xl border-2 border-gray hover:text-black hover:border-black hover:cursor-pointer border-solid mb-2.5 bg-white">
-                    <button className="w-1/4"><Image alt="deployment test" src={usdcDarkSvg}></Image></button>
-                    <div className="w-3/4 float-left mr-9"> $USDC </div>
-                  </div>
-                  <div onClick={() => {  closeCurrenciesDropdownPopover() }} className="flex justify-center items-center w-6/6 h-1/9 p-2 rounded-2xl border-2 border-black text-black hover:border-black hover:cursor-pointer border-solid mb-2.5 bg-white">
-                    <button className="w-1/4"><Image alt="deployment test" src={usdcDarkSvg}></Image></button>
-                    <div className="w-3/4 float-left mr-9"> $FRAX </div>
-                  </div>
-                  <div onClick={() => {  closeCurrenciesDropdownPopover() }} className="flex justify-center items-center w-6/6 h-1/9 p-2 rounded-2xl border-2 border-black text-black hover:border-black hover:cursor-pointer border-solid mb-2.5 bg-white">
-                    <button className="w-1/4"><Image alt="deployment test" src={usdcDarkSvg}></Image></button>
-                    <div className="w-3/4 float-left mr-9"> $USDT </div>
-                  </div>
-                </div>
-              </div>
+              <CurrenciesPopover currenciesPopoverDropdownRef = {currenciesPopoverDropdownRef}
+                                 currenciesDropdownPopoverShow = {currenciesDropdownPopoverShow}
+                                 amountInInputWidth = {amountInInputWidth}
+                                 closeCurrenciesDropdownPopover = {closeCurrenciesDropdownPopover}
+                                 usdcDarkSvg = {usdcDarkSvg} />
               {/* Currencies dropdown */}
               {/* Additional trade info dropdown */}
-              <div id="dropdown" ref={additionalTradeInfoPopoverDropdownRef} className={(additionalTradeInfoDropdownPopoverShow ? "block " : "hidden ") + (color === "white" ? "bg-white " : backgroundColor1 + " ") +
-                "absolute text-base z-10 float-right h-2/6 w-1/5 py-2 list-none rounded-2xl border-4 border-black border-solid shadow-lg mx-0	my-0 p-5 xsm:min-w-250"
-              } style={{minWidth: Math.max(0.8 * amountInInputWidth, 250), minHeight: 3 * amountInInputHeight + 5 }}>
-                <div className="flex flex-col space-y-1 py-4 text-sm dark:text-gray-400 p-2">
-                  <div className="mb-3 xl:mb-4 2xl:mb-4">
-                    <h3 className="float-left text-lg text-black">More details</h3>
-                    <h3 className="float-right text-lg text-black hover:cursor-pointer" onClick={() => { if (additionalTradeInfoDropdownPopoverShow) { closeAdditionalTradeInfoDropdownPopover() } }}>X</h3>
-                  </div>
-                  <div className="float-left"><h2 className="text-black">Expected output</h2></div>
-                  <div className="float-left"><h2>{expectedAmount} $AGENCY</h2></div>
-                  <div className="float-left"><h2 className="text-black">Price impact</h2></div>
-                  <div className="float-left"><h2>0%</h2></div>
-                  <div className="float-left"><h2 className="text-black">Minimum received after slippage ( %0.5 )</h2></div>
-                  <div className="float-left"><h2>{expectedAmount} $AGENCY</h2></div>
-                  <div className="float-left"><h2 className="text-black">Network fee</h2></div>
-                  <div className="float-left"><h2>~$1.72</h2></div>
-                </div>
-              </div>
+              <AdditionalTradeInformationPopover additionalTradeInfoPopoverDropdownRef = {additionalTradeInfoPopoverDropdownRef}
+                                                 additionalTradeInfoDropdownPopoverShow = {additionalTradeInfoDropdownPopoverShow} 
+                                                 amountInInputWidth = {amountInInputWidth}
+                                                 amountInInputHeight = {amountInInputHeight}
+                                                 closeAdditionalTradeInfoDropdownPopover = {closeAdditionalTradeInfoDropdownPopover}
+                                                 expectedAmount = {expectedAmount} />
             </div>
             {/* Exchange button */}
             <ExchangeButton determineButtonAction = {determineButtonAction}
