@@ -50,7 +50,7 @@ import SettingsButton from "../SettingsButton";
 import SettingsPopover from "../SettingsPopover";
 import CurrenciesButton from "../CurrenciesButton";
 import InformationIndicator from "../shared/indicators/InformationIndicator";
-import TradeInfoButton from "../TradeInfoButton";
+// import TradeInfoButton from "../TradeInfoButton";
 import LoadingIndicator from "../shared/indicators/LoadingIndicator";
 import SuccessIndicator from "../shared/indicators/SuccessIndicator";
 import ErrorIndicator from "../shared/indicators/ErrorIndicator";
