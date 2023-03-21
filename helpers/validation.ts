@@ -21,4 +21,4 @@ function isEnoughAllowance(amount: string, allowance: string){
 function isEnoughStables(amount: string, allowance: string){
     return isGreaterThanOrEqualTo(amount, allowance);
 }
-export default {isAmountEntered, isEnoughAllowance, isEnoughStables};
+export default validation;

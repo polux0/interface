@@ -1,15 +1,16 @@
-import React from "react";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import React, { useLayoutEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ethers } from 'ethers';
 import { Chain, useAccount, useBalance, useContractRead, useContractWrite, usePrepareContractWrite, useProvider, useWaitForTransaction } from 'wagmi'
 import { useAddRecentTransaction } from '@rainbow-me/rainbowkit';
 import { agencyStableAbi, agencyTreasurySeedAbi } from '../../contracts/abis'
 import useDebounce from '../../hooks/Debounce';
+import useIsomorphicLayoutEffect from "@/hooks/IsomporphicLayoutEffect";
 import { BigNumber } from 'ethers';
 import Image from 'next/image';
 
 import { useNetwork } from 'wagmi'
-
+import { addresses, GOERLI_ID } from "../../contracts"
 
 // technical debt - create separate module
 import settingsSvg from "../../public/noun-settings-pixel-art-2758641.svg";
@@ -37,6 +38,24 @@ import {
 import { addressFormater } from '@/helpers/addressFormater';
 // technical debt
 import validationz from '@/helpers/validation';
+import Account from "../shared/account";
+import Logo from "../shared/header/logo";
+import AccountMobile from "../shared/header/accountMobile";
+import Header from "../shared/header/header";
+import Roadmap from "../shared/roadmap/roadmap";
+import Stats from "../shared/Stats";
+import RoadmapAndStatsMobile from "../shared/RodmapAndStatsMobile";
+import ExchangeButton from "./exchangebutton";
+import SettingsButton from "../SettingsButton";
+import SettingsPopover from "../SettingsPopover";
+import CurrenciesButton from "../CurrenciesButton";
+import InformationIndicator from "../shared/indicators/InformationIndicator";
+// import TradeInfoButton from "../TradeInfoButton";
+import LoadingIndicator from "../shared/indicators/LoadingIndicator";
+import SuccessIndicator from "../shared/indicators/SuccessIndicator";
+import ErrorIndicator from "../shared/indicators/ErrorIndicator";
+import CurrenciesPopover from "../CurrenciesPopover";
+import AdditionalTradeInformationPopover from "../AdditionalTradeInformationPopover";
 
 export default function Exchange({ ...props }) {
 
@@ -216,21 +235,23 @@ export default function Exchange({ ...props }) {
     // not sure if necessary
     overrides: { gasLimit: BigNumber.from(600000) }
   })
+
   // config of contractWrite 
-  const { write: increaseAllowanceWrite, data: increaseAllowanceData, error: increaseAllowanceError, isLoading: increaseAllowanceIsLoading, isError: increaseAllowanceIsError, isSuccess: increaseAllowanceIsSuccess } = 
+  const { write: increaseAllowanceWrite, data: increaseAllowanceData } = 
   useContractWrite({
     ... increaseAllowanceConfig,
     onSettled(data, error) {
       error ? setTransactionStatus(TransationStatus.ERROR) : setTransactionStatus(TransationStatus.LOADING)
     },
   },)
-  const { write: swapExactFraxForTempleWrite, data: swapExactFraxForTempleWriteData, error: swapExactFraxForTempleWriteError, isLoading: swapExactFraxForTempleWriteIsLoading, isError: swapExactFraxForTempleWriteIsError, isSuccess: swapExactFraxForTempleWriteIsSuccess } = 
+  const { write: swapExactFraxForTempleWrite, data: swapExactFraxForTempleWriteData } = 
   useContractWrite({
     ...swapExactFraxForTempleConfig,
     onSettled(data, error) {
       error ? setTransactionStatus(TransationStatus.ERROR) : setTransactionStatus(TransationStatus.LOADING)
     },})
 
+  // technical debt - optimize only to be used when chain is changed
   function isChainSupported(chain: any){
     return chain && chains ? chains.map(chain => chain.id).includes(chain.id) : false; 
   }
@@ -257,6 +278,8 @@ export default function Exchange({ ...props }) {
     },
   });
 
+  // technical debt
+  // move this into /hooks
   useEffect(
     () => {
       if (debouncedInputAmount) {
@@ -298,6 +321,7 @@ export default function Exchange({ ...props }) {
   // move this into /hooks
 
   useLayoutEffect(() => {
+      // console.log("addresses: ", addresses[chain?.id])
       setAmountInInputWidth(amountInInputRef.current.clientWidth)
       setAmountInInputHeight(amountInInputRef.current.clientHeight)
   }, []);
@@ -436,68 +460,58 @@ export default function Exchange({ ...props }) {
   return (
     
     <div className="h-screen bg-black p-6" style={{ backgroundColor }}>
-      {isChainSupported(chain)}
       {/* Header */}
-      <div className="grid 2xl:grid-cols-7 xl:grid-cols-7 lg:grid-cols-7 md:grid-cols-7 sm:grid-cols-5">
-        <div className="2xl:col-start-3 col-span-2 2xl:place-self-center xl:col-start-3 col-span-2 xl:place-self-center lg:col-start-3 col-span-3 lg:place-self-center md:col-start-3 col-span-2 md:place-self-center sm:col-start-2 col-span-3 sm:place-self-end xsm: col-start-2 place-self-center"><Image alt="deployment test" className="2xl:ml-0 xl:ml-0 md:ml-0 sm:ml-20" src={agencyLogoSvg}></Image></div>
-        {/* Account indicator */}
-        <div className="col-start-7 text-white hover:cursor-pointer xsm:hidden sm:block md:block lg:block xl:block 2xl:block mt-1.5" onClick={determineAccountAction()}>
-          <h1 className="mb-3.5 mr-px float-left" style={{display: mounted ? "block": "none"}}>
-            {determineAccountValue()}
-          </h1>
-          <Image className={"mt-2 ml-2"} alt="deployment test" src={accountModalOpenIndicator}></Image>
-        </div>
-        {/* Account indicator */}
-        <div className="col-start-6 text-white place-self-center sm:place-self-center sm:mb-3.5 xsm:mb-3.5 hover:cursor-pointer xsm:block sm:hidden md:hidden lg:hidden xl:hidden 2xl:hidden"><Image alt="deployment test" className="mb-1" src={userWalletMobileScreenSvg}></Image></div>
-      </div>
+      <Header agencyLogoSvg = {agencyLogoSvg} 
+              determineAccountAction = {determineAccountAction}
+              mounted = {mounted}
+              determineAccountValue = {determineAccountValue}
+              accountModalOpenIndicator = {accountModalOpenIndicator}
+              userWalletMobileScreen = {userWalletMobileScreenSvg}
+      />
       <div className="flex flex-row w-full min-h-3/4 lg:mt-36 justify-center items-center md:mt-36 sm:mt-36 xsm:mt-1">
         {/* //Roadmap */}
-        <div className="float-left w-4/12 xsm:hidden 2xl:block xl:block lg:block md:block sm:block">
-          <button><Image src={roadmapSvg} alt="deployment test" style={imageStyle}></Image></button>
-        </div>
+        <Roadmap roadmapSvg = {roadmapSvg}
+                 style = {imageStyle}/>
+        {/* Exchange Container */}
         <div className="h-max 2xl:w-4/12 xl:w-5/12 lg:w-6/12 bg-white rounded-3xl p-6" style={exchangeContainerHeight}>
-          <div className="w-full h-1/6">
-            <button className="float-right" onClick={() => {
-              settingsDropdownPopoverShow
-                ? closeSettingsDropdownPopover()
-                : openSettingsDropdownPopover();
-            }}><Image alt="deployment test" src={settingsSvg}></Image></button>
-          </div>
+          {/* Settings Button*/}
+          <SettingsButton settingsSvg={settingsSvg}
+                          settingsButtonDropdownPopoverShow = {settingsButtonDropdownPopoverShow}
+                          settingsPopoverDropdownRef = {settingsPopoverDropdownRef}
+                          openSettingsDropdownPopover = {openSettingsDropdownPopover}
+                          closeSettingsDropdownPopover = {closeSettingsDropdownPopover} />
+          {/* Settings Button*/}
           {/* Swap */}
           <div className="flex flex-col justify-center items-center space-y-2 h-2/3">
             <div className="flex justify-center items-center w-5/6 h-2/6 rounded-2xl" ref={amountInInputRef} style={{ backgroundColor }}>
               <input className="w-2/3 h-2/3 text-4xl text-white p-4 focus:outline-0" style={{ backgroundColor }} type="number" min="0" value={amount} onChange={e => amountHandler(e)}></input>
               <button className="w-1/6 h-1/2"><Image alt="deployment test" className="float-right" src={usdcSvg}></Image></button>
-              <button className="w-1/6 h-1/2" onClick={() => {
-                currenciesDropdownPopoverShow
-                  ? closeCurrenciesDropdownPopover()
-                  : openCurrenciesDropdownPopover();
-              }}
-              ><Image alt="deployment test" src={dropDownSvg} style={imageStyle}></Image></button>
+              {/* Currencies dropdown button */}
+              <CurrenciesButton currenciesDropdownPopoverShow = {currenciesDropdownPopoverShow}
+                                closeCurrenciesDropdownPopover = {closeCurrenciesDropdownPopover}
+                                openCurrenciesDropdownPopover = {openCurrenciesDropdownPopover}
+                                dropDownSvg = {dropDownSvg}
+                                imageStyle = {imageStyle} />
+              {/* Currencies dropdown button */}
               {/* Settings dropdown */}
-              <div id="dropdown" ref={settingsPopoverDropdownRef} className={(settingsDropdownPopoverShow ? "block " : "hidden ") + (color === "white" ? "bg-white " : backgroundColor1 + " ") +
-                "absolute text-base z-10 float-right w-1/6 h-2/6 py-2 list-none text-center rounded-2xl border-4 border-black border-solid shadow-lg p-5 mt-40"
-              } style={{minWidth: '250px', marginLeft: Math.max(amountInInputWidth - 250, 0)}}>
-                <h3 className='text-black xsm:mb-1'>Slippage tolerance</h3>
-                <div className="flex flex-col h-4/5 py-2 text-sm dark:text-gray-400">
-                  <div className="flex justify-center items-center text-center w-6/6 h-1/3 bg-white">
-                    <button className="w-1/4 h-full rounded-2xl border-2 border-gray mr-1">
-                      Auto
-                    </button>
-                    <input className="w-3/4 text-2xl text-white text-center p-4 rounded-2xl focus:outline-0" value={"0,5 %"} style={{ backgroundColor }} onChange={e => { }}></input>
-                  </div>
-                  <div className="w-6/6 h-full p-2 bg-white xsm:mt-2.5">
-                    <div className="w-4/4 text-1xl">
-                      Your transaction will revert if the price changes unfavorably by more than this percentage during your order.
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <SettingsPopover settingsPopoverDropdownRef = {settingsPopoverDropdownRef}
+                               settingsDropdownPopoverShow = {settingsDropdownPopoverShow}
+                               color = {color}
+                               backgroundColor = {backgroundColor}
+                               backgroundColor1 = {backgroundColor1}
+                               amountInInputWidth = {amountInInputWidth} />
+
               {/* Settings dropdown */}
             </div>
             <div className="flex justify-center items-center w-5/6 h-2/6 rounded-2xl" style={{ backgroundColor }}>
               <input className="w-2/3 h-2/3 text-4xl text-white p-4 focus:outline-0" style={{ backgroundColor }} defaultValue={expectedAmount} type="number" min="0" onChange={e => { }}></input>
               <button className="w-1/6 h-1/2"><Image alt="deployment test" className="float-right" src={usdcSvg}></Image></button>
+              {/* TradeInfoButton */}
+
+              {/* <TradeInfoButton additionalTradeInfoDropdownPopoverShow = {additionalTradeInfoDropdownPopoverShow}
+                               closeAdditionalTradeInfoDropdownPopover = {closeAdditionalTradeInfoDropdownPopover}
+                               openAdditionalTradeInfoDropdownPopover = {openAdditionalTradeInfoDropdownPopover} /> */}
+              
               <button className="w-1/6 h-1/9" onClick={() => {
                 additionalTradeInfoDropdownPopoverShow
                   ? closeAdditionalTradeInfoDropdownPopover()
@@ -505,80 +519,53 @@ export default function Exchange({ ...props }) {
                   
               }}>
                 {/* information indicator */}
-                <Image className="hidden" alt="deployment test" src={informationIndicatorWhite} style={{display: transactionStatus === TransationStatus.DEFAULT ? "block" : "none", marginLeft: "auto", marginRight: "auto"}}></Image>
+                <InformationIndicator informationIndicatorWhite = {informationIndicatorWhite}
+                                      transactionStatus = {transactionStatus}
+                                      transactionStatusDefault = {TransationStatus.DEFAULT}/>
+                
                 {/* loading indicator */}
-                <span className="loader float-left 2xl:ml-4	xl:ml-4 lg:ml-3.5 md:ml-2.5 sm:ml-2 xsm:ml-0.5 h-9 w-9" style={{display: transactionStatus === TransationStatus.LOADING ? "block" : "none"}}></span>
+                <LoadingIndicator transactionStatus = {transactionStatus} 
+                                  transactionStatusLoading = {TransationStatus.LOADING}/>
                 {/* success indicator */}
-                <Image className="success" alt="deployment test" src={successIndicator} style={{display: transactionStatus === TransationStatus.SUCCESS ? "block" : "none", marginLeft: "auto", marginRight: "auto"}}></Image>
+                <SuccessIndicator successIndicator = {successIndicator}
+                                  transactionStatus = {transactionStatus}
+                                  transactionStatusSuccess = {TransationStatus.SUCCESS}/>
                 {/* error indicator */}
-                <Image className="error" alt="deployment test" src={errorIndicator} style={{display: transactionStatus === TransationStatus.ERROR ? "block" : "none", marginLeft: "auto", marginRight: "auto"}}></Image>
+                <ErrorIndicator errorIndicator = {errorIndicator} 
+                                transactionStatus = {transactionStatus}
+                                tranasctionStatusError = {TransationStatus.ERROR}/>
               </button>
+              {/* TradeInfoButton */}
+
               {/* Currencies dropdown */}
-              <div id="dropdown" ref={currenciesPopoverDropdownRef} className={(currenciesDropdownPopoverShow ? "block " : "hidden ") + (color === "white" ? "bg-white " : backgroundColor1 + " ") +
-                "absolute text-base z-10 float-right w-1/6 py-2 list-none text-center rounded-2xl border-4 border-black border-solid shadow-lg mt-40"
-              } style={{minWidth: '250px', marginLeft: Math.max(amountInInputWidth - 250, 0)}}>
-                <h3 className='text-black'>Choose token ( soon )</h3>
-                <div className="flex flex-col py-2 text-sm dark:text-gray-400 p-5">
-                  <div onClick={() => {  closeCurrenciesDropdownPopover() }} className="flex justify-center items-center w-6/6 h-1/9 p-2 rounded-2xl border-2 border-gray hover:text-black hover:border-black hover:cursor-pointer border-solid mb-2.5 bg-white">
-                    <button className="w-1/4"><Image alt="deployment test" src={usdcDarkSvg}></Image></button>
-                    <div className="w-3/4 float-left mr-9"> $USDC </div>
-                  </div>
-                  <div onClick={() => {  closeCurrenciesDropdownPopover() }} className="flex justify-center items-center w-6/6 h-1/9 p-2 rounded-2xl border-2 border-black text-black hover:border-black hover:cursor-pointer border-solid mb-2.5 bg-white">
-                    <button className="w-1/4"><Image alt="deployment test" src={usdcDarkSvg}></Image></button>
-                    <div className="w-3/4 float-left mr-9"> $FRAX </div>
-                  </div>
-                  <div onClick={() => {  closeCurrenciesDropdownPopover() }} className="flex justify-center items-center w-6/6 h-1/9 p-2 rounded-2xl border-2 border-black text-black hover:border-black hover:cursor-pointer border-solid mb-2.5 bg-white">
-                    <button className="w-1/4"><Image alt="deployment test" src={usdcDarkSvg}></Image></button>
-                    <div className="w-3/4 float-left mr-9"> $USDT </div>
-                  </div>
-                </div>
-              </div>
+              <CurrenciesPopover currenciesPopoverDropdownRef = {currenciesPopoverDropdownRef}
+                                 currenciesDropdownPopoverShow = {currenciesDropdownPopoverShow}
+                                 amountInInputWidth = {amountInInputWidth}
+                                 closeCurrenciesDropdownPopover = {closeCurrenciesDropdownPopover}
+                                 usdcDarkSvg = {usdcDarkSvg} />
               {/* Currencies dropdown */}
               {/* Additional trade info dropdown */}
-              <div id="dropdown" ref={additionalTradeInfoPopoverDropdownRef} className={(additionalTradeInfoDropdownPopoverShow ? "block " : "hidden ") + (color === "white" ? "bg-white " : backgroundColor1 + " ") +
-                "absolute text-base z-10 float-right h-2/6 w-1/5 py-2 list-none rounded-2xl border-4 border-black border-solid shadow-lg mx-0	my-0 p-5 xsm:min-w-250"
-              } style={{minWidth: Math.max(0.8 * amountInInputWidth, 250), minHeight: 3 * amountInInputHeight + 5 }}>
-                <div className="flex flex-col space-y-1 py-4 text-sm dark:text-gray-400 p-2">
-                  <div className="mb-3 xl:mb-4 2xl:mb-4">
-                    <h3 className="float-left text-lg text-black">More details</h3>
-                    <h3 className="float-right text-lg text-black hover:cursor-pointer" onClick={() => { if (additionalTradeInfoDropdownPopoverShow) { closeAdditionalTradeInfoDropdownPopover() } }}>X</h3>
-                  </div>
-                  <div className="float-left"><h2 className="text-black">Expected output</h2></div>
-                  <div className="float-left"><h2>{expectedAmount} $AGENCY</h2></div>
-                  <div className="float-left"><h2 className="text-black">Price impact</h2></div>
-                  <div className="float-left"><h2>0%</h2></div>
-                  <div className="float-left"><h2 className="text-black">Minimum received after slippage ( %0.5 )</h2></div>
-                  <div className="float-left"><h2>{expectedAmount} $AGENCY</h2></div>
-                  <div className="float-left"><h2 className="text-black">Network fee</h2></div>
-                  <div className="float-left"><h2>~$1.72</h2></div>
-                </div>
-              </div>
+              <AdditionalTradeInformationPopover additionalTradeInfoPopoverDropdownRef = {additionalTradeInfoPopoverDropdownRef}
+                                                 additionalTradeInfoDropdownPopoverShow = {additionalTradeInfoDropdownPopoverShow} 
+                                                 amountInInputWidth = {amountInInputWidth}
+                                                 amountInInputHeight = {amountInInputHeight}
+                                                 closeAdditionalTradeInfoDropdownPopover = {closeAdditionalTradeInfoDropdownPopover}
+                                                 expectedAmount = {expectedAmount} />
             </div>
-            <div className="w-5/6 h-2/6 rounded-2xl border-4 border-black border-solid">
-              <button className="w-full text-black bg-white h-full rounded-2xl"
-                onClick= {
-                  determineButtonAction()
-                  }>
-                  {determineButtonValue()}
-              </button>
-            </div>
+            {/* Exchange button */}
+            <ExchangeButton determineButtonAction = {determineButtonAction}
+                            determineButtonValue = {determineButtonValue} />
+            {/* Exchange button */}
           </div>
         </div>
         {/* Stats */}
-        <div className="w-4/12 float-right hover:cursor-pointer xsm:hidden sm:block md:block lg:block xl:block 2xl:block">
-          <Image alt="deployment test" className="float-right" src={statsSvg}></Image>
-        </div>
+        <Stats statsSvg={statsSvg}/>
       </div>
       {/* Roadmap & Stats as a footer ( mobile ) */}
-      <div className="w-full h-1/7 mt-3 2xl:hidden xl:hidden lg:hidden md:hidden sm:hidden">
-        <div className="w-4/12 float-right hover:cursor-pointer">
-          <Image alt="deployment test" className="" src={statsSvg} style={imageStyle}></Image>
-        </div>
-        <div className="w-4/12 float-left hover:cursor-pointer">
-          <Image alt="deployment test" className="" src={roadmapSvg}></Image>
-        </div>
-        {/* Roadmap & Stats as a footer ( mobile ) */}
-      </div>
+      <RoadmapAndStatsMobile statsSvg={statsSvg}
+                             imageStyle={imageStyle}
+                             roadmapSvg = {roadmapSvg}/>
+      {/* Roadmap & Stats as a footer ( mobile ) */}
     </div>
   )
 }
